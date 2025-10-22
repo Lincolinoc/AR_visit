@@ -41,10 +41,23 @@
         overflow-y: auto;
         border: 1px solid #0f0;
       }
+      #markerSwitch {
+        position: absolute;
+        z-index: 5;
+        right: 10px;
+        top: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
     </style>
   </head>
   <body>
     <div id="loading">📷 Наведите камеру на визитку</div>
+    <div id="markerSwitch">🔄 Переключить маркер</div>
     <div id="debug"></div>
     
     <a-scene 
@@ -52,23 +65,54 @@
       arjs='sourceType: webcam; debugUIEnabled: false;'
       vr-mode-ui="enabled: false">
       
-      <a-marker type="pattern" url="mycard.patt" id="marker">
-        <!-- Тестовый кубик -->
-        <a-box color="red" position="0 0.5 0" scale="0.5 0.5 0.5"></a-box>
+      <!-- Маркер с вашим pattern (основной) -->
+      <a-marker 
+        type="pattern" 
+        url="mycard.patt" 
+        id="customMarker"
+        smooth="true"
+        smoothCount="5"
+        smoothTolerance="0.01"
+        smoothThreshold="2">
         
-        <!-- Ваша 3D модель -->
+        <a-box color="blue" position="0 0.5 0" scale="0.5 0.5 0.5"></a-box>
+        
         <a-entity 
-          id="model"
           obj-model="obj: url(model.obj); mtl: url(model.mtl)"
           scale="2 2 2"
           rotation="0 180 0"
           position="0 0 0">
         </a-entity>
         
-        <!-- Текст с информацией -->
         <a-entity position="0 1 0" rotation="-20 0 0">
           <a-text 
             value="Иван Иванов\nДизайнер" 
+            align="center" 
+            width="1.6"
+            color="#000">
+          </a-text>
+        </a-entity>
+      </a-marker>
+      
+      <!-- Запасной маркер Hiro (встроенный) для теста -->
+      <a-marker 
+        preset="hiro" 
+        id="hiroMarker"
+        visible="false"
+        smooth="true">
+        
+        <a-box color="red" position="0 0.5 0" scale="0.5 0.5 0.5"></a-box>
+        
+        <a-entity 
+          obj-model="obj: url(model.obj); mtl: url(model.mtl)"
+          scale="2 2 2"
+          rotation="0 180 0"
+          position="0 0 0">
+        </a-entity>
+        
+        <a-entity position="0 1 0" rotation="-20 0 0">
+          <a-text 
+            value="Иван Иванов\nДизайнер\n(HIRO тест)" 
             align="center" 
             width="1.6"
             color="#000">
@@ -82,6 +126,9 @@
     <script>
       const loading = document.getElementById('loading');
       const debug = document.getElementById('debug');
+      const markerSwitch = document.getElementById('markerSwitch');
+      
+      let useCustomMarker = true;
       
       function log(msg) {
         console.log(msg);
@@ -91,7 +138,28 @@
       }
 
       log('✓ Страница загружена');
-      log('📱 Устройство: ' + (navigator.userAgent.match(/iPhone|iPad|Android/) || ['Desktop'])[0]);
+      log('📱 ' + (navigator.userAgent.match(/iPhone|iPad|Android/) || ['Desktop'])[0]);
+
+      // Переключение маркеров
+      markerSwitch.addEventListener('click', () => {
+        useCustomMarker = !useCustomMarker;
+        const customMarker = document.getElementById('customMarker');
+        const hiroMarker = document.getElementById('hiroMarker');
+        
+        if (useCustomMarker) {
+          customMarker.setAttribute('visible', 'true');
+          hiroMarker.setAttribute('visible', 'false');
+          markerSwitch.textContent = '🔄 → Hiro тест';
+          loading.textContent = '📷 Наведите на ВАШУ визитку';
+          log('🔄 Активен кастомный маркер');
+        } else {
+          customMarker.setAttribute('visible', 'false');
+          hiroMarker.setAttribute('visible', 'true');
+          markerSwitch.textContent = '🔄 → Своя визитка';
+          loading.textContent = '📷 Наведите на HIRO маркер';
+          log('🔄 Активен Hiro маркер (тест)');
+        }
+      });
 
       // Отслеживание загрузки сцены
       const scene = document.querySelector('a-scene');
@@ -106,83 +174,112 @@
         const video = document.querySelector('video');
         if (video && video.videoWidth > 0 && !cameraReady) {
           cameraReady = true;
-          log('✓ Камера активна: ' + video.videoWidth + 'x' + video.videoHeight);
+          log('✓ Камера: ' + video.videoWidth + 'x' + video.videoHeight);
           loading.style.background = 'rgba(100,200,100,0.9)';
           clearInterval(checkCamera);
         }
       }, 500);
 
-      // Таймаут на проверку камеры
       setTimeout(() => {
         if (!cameraReady) {
-          log('⚠ Камера не запустилась за 10 секунд');
-          loading.textContent = '⚠ Проблема с камерой. Обновите страницу';
+          log('⚠ Камера не стартовала');
+          loading.textContent = '⚠ Обновите страницу';
           loading.style.background = 'rgba(255,100,0,0.9)';
         }
         clearInterval(checkCamera);
       }, 10000);
 
-      // Отслеживание маркера
-      const marker = document.getElementById('marker');
+      // Отслеживание ОБОИХ маркеров
+      const customMarker = document.getElementById('customMarker');
+      const hiroMarker = document.getElementById('hiroMarker');
       
-      marker.addEventListener('markerFound', () => {
-        log('🎯 МАРКЕР НАЙДЕН!');
-        loading.textContent = '✓ Маркер обнаружен!';
+      customMarker.addEventListener('markerFound', () => {
+        log('🎯 КАСТОМНЫЙ МАРКЕР НАЙДЕН!');
+        loading.textContent = '✓ Ваш маркер работает!';
         loading.style.background = 'rgba(0,255,0,0.9)';
-        loading.style.color = '#000';
       });
 
-      marker.addEventListener('markerLost', () => {
-        log('⚠ Маркер потерян');
+      customMarker.addEventListener('markerLost', () => {
+        log('⚠ Кастомный маркер потерян');
         loading.textContent = '📷 Наведите камеру на визитку';
         loading.style.background = 'rgba(255,255,255,0.9)';
-        loading.style.color = '#000';
       });
 
-      // Отслеживание загрузки модели
-      const model = document.getElementById('model');
-      
-      model.addEventListener('model-loaded', () => {
-        log('✓ 3D модель загружена успешно');
+      hiroMarker.addEventListener('markerFound', () => {
+        log('🎯 HIRO МАРКЕР НАЙДЕН!');
+        loading.textContent = '✓ Hiro маркер работает!';
+        loading.style.background = 'rgba(0,255,255,0.9)';
       });
 
-      model.addEventListener('model-error', (e) => {
-        log('⚠ Ошибка загрузки модели');
-        console.error('Model error:', e);
+      hiroMarker.addEventListener('markerLost', () => {
+        log('⚠ Hiro маркер потерян');
+        loading.textContent = '📷 Наведите на Hiro маркер';
+        loading.style.background = 'rgba(255,255,255,0.9)';
       });
 
       // Проверка доступности файлов
-      const filesToCheck = ['mycard.patt', 'model.obj', 'model.mtl'];
-      filesToCheck.forEach(file => {
+      fetch('mycard.patt')
+        .then(response => {
+          if (response.ok) {
+            return response.text();
+          } else {
+            throw new Error('HTTP ' + response.status);
+          }
+        })
+        .then(text => {
+          log('✓ mycard.patt найден (' + text.length + ' байт)');
+          // Проверка формата
+          if (text.length < 100) {
+            log('⚠ ВНИМАНИЕ: файл слишком маленький!');
+          }
+          if (!text.includes('255') && !text.includes('0')) {
+            log('⚠ ВНИМАНИЕ: подозрительный формат!');
+          }
+        })
+        .catch(err => {
+          log('✗ mycard.patt недоступен: ' + err.message);
+          log('ℹ️ Используйте кнопку "→ Hiro тест"');
+        });
+
+      ['model.obj', 'model.mtl'].forEach(file => {
         fetch(file)
           .then(response => {
             if (response.ok) {
-              log('✓ Файл найден: ' + file);
+              log('✓ ' + file + ' найден');
             } else {
-              log('✗ Файл не найден: ' + file + ' (HTTP ' + response.status + ')');
+              log('⚠ ' + file + ' (HTTP ' + response.status + ')');
             }
           })
-          .catch(err => {
-            log('✗ Ошибка загрузки: ' + file);
-          });
+          .catch(() => log('✗ ' + file + ' недоступен'));
       });
 
       // Проверка HTTPS
       if (location.protocol === 'https:') {
         log('✓ HTTPS активен');
-      } else if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-        log('ℹ Localhost (HTTPS не требуется)');
       } else {
-        log('⚠ ВНИМАНИЕ: HTTP вместо HTTPS!');
+        log('⚠ HTTP (нужен HTTPS)');
       }
 
       // Обработчик ошибок
+      let errorCount = 0;
       window.addEventListener('error', (e) => {
-        log('✗ JS ошибка: ' + e.message);
+        errorCount++;
+        if (errorCount <= 3) { // Показываем только первые 3 ошибки
+          log('✗ Ошибка: ' + e.message.substring(0, 50));
+        }
+        
+        // Специальная обработка divide by zero
+        if (e.message.includes('divide by zero')) {
+          log('⚠ ПРОБЛЕМА С МАРКЕРОМ!');
+          log('ℹ️ Нажмите "→ Hiro тест"');
+          markerSwitch.style.background = 'rgba(255,255,0,0.9)';
+          markerSwitch.style.animation = 'pulse 1s infinite';
+        }
       });
     </script>
   </body>
 </html>
+
 
 
 
