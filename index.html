@@ -1,55 +1,54 @@
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>WebAR визитка — пример</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>WebAR визитка — пример</title>
 
-  <!-- A-Frame и AR.js -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <!-- Новые библиотеки -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@latest/dist/aframe-extras.loaders.min.js"></script>
 
-  <style>
-    body { margin: 0; overflow: hidden; }
-    #loading { position: absolute; z-index: 5; left: 10px; top: 10px; background: rgba(255,255,255,0.9); padding: 8px; border-radius: 6px; }
-  </style>
-</head>
-<body>
-  <div id="loading">Наведите камеру на визитку</div>
-
-  <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-    <!-- Используем кастомный .patt (mycard.patt должен быть доступен по тому же хосту) -->
-    <a-marker type="pattern" url="mycard.patt">
-      <!-- 3D-модель .glb рядом с html (model.glb) -->
-    
-      <a-entity obj-model="obj: url(model.obj); mtl: url(model.mtl)"
-          scale="0.5 0.5 0.5"
-          rotation="0 180 0"
-          position="0 0 0">
-    </a-entity>
-
-      <!-- Текст или плавающие UI-элементы -->
-      <a-entity position="0 0.6 0" rotation="-20 0 0">
-        <a-text value="Иван Иванов\nДизайнер" align="center" width="1.6"></a-text>
-      </a-entity>
-    </a-marker>
-
-    <a-entity camera></a-entity>
-  </a-scene>
-
-  <script>
-    // Пример: сделать модель кликабельной — откроет ссылку при тапе
-    document.addEventListener('click', function (e) {
-      // упрощённо: если модель видима — открыть ссылку
-      var model = document.querySelector('#model');
-      if (model && model.object3D && model.object3D.visible) {
-        window.open('https://t.me/username', '_blank');
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #loading {
+        position: absolute;
+        z-index: 5;
+        left: 10px;
+        top: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 8px;
+        border-radius: 6px;
       }
-    });
-  </script>
-</body>
-</html>
+    </style>
+  </head>
 
+  <body>
+    <div id="loading">Наведите камеру на визитку</div>
+
+    <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
+      <a-marker type="pattern" url="mycard.patt">
+
+        <!-- Временный кубик для проверки -->
+        <a-box color="red" position="0 0.2 0"></a-box>
+
+        <!-- Модель OBJ -->
+        <a-entity obj-model="obj: url(model.obj); mtl: url(model.mtl)"
+                  scale="2 2 2"
+                  rotation="0 180 0"
+                  position="0 0 0">
+        </a-entity>
+
+        <a-entity position="0 0.6 0" rotation="-20 0 0">
+          <a-text value="Иван Иванов\nДизайнер" align="center" width="1.6"></a-text>
+        </a-entity>
+      </a-marker>
+
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
+</html>
 
 
 
