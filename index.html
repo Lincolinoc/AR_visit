@@ -65,6 +65,17 @@
       <a-entity camera></a-entity>
     </a-scene>
 
+    <button id="startBtn" style="position:absolute; z-index:10; top:50%; left:50%; transform:translate(-50%,-50%); padding:20px; font-size:18px;">
+  Запустить AR
+</button>
+
+<script>
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('startBtn').style.display = 'none';
+  // Камера запустится автоматически
+});
+</script>
+
     <script>
       const debug = document.getElementById('debug');
       const loading = document.getElementById('loading');
@@ -138,6 +149,7 @@ https://lincolinoc.github.io/index.html
 https://lincolinoc.github.io/mycard.patt
 https://lincolinoc.github.io/model.obj
 https://lincolinoc.github.io/model.mtl
+
 
 
 
