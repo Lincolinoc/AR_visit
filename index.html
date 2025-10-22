@@ -127,24 +127,7 @@
       <a-entity camera></a-entity>
     </a-scene>
 
-    <script>
-      const loading = document.getElementById('loading');
-      const debug = document.getElementById('debug');
-      const markerSwitch = document.getElementById('markerSwitch');
-      const instructions = document.getElementById('instructions');
-      
-      let useCustomMarker = false;
-      let cameraReady = false;
-      let customMarkerExists = false;
-      let customMarkerElement = null;
-      let hasError = false;
-
-      function log(msg, type = 'info') {
-        console.log(msg);
-        const time = new Date().toLocaleTimeString();
-        const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : '';
-        debug.innerHTML += `<span class="${className}">[${time}] ${msg}</span><br>`;
-        debug.scrollTop = debug.scrollHeight;
+    
       }
 
       log('✓ Страница загружена');
@@ -161,75 +144,9 @@
           return;
         }
 
-        log('🔨 Создание кастомного маркера...', 'warning');
-        const scene = document.querySelector('a-scene');
         
-        // Создаём маркер
-        customMarkerElement = document.createElement('a-marker');
-        customMarkerElement.setAttribute('type', 'pattern');
-        customMarkerElement.setAttribute('url', 'mycard.patt');
-        customMarkerElement.setAttribute('id', 'customMarker');
-        customMarkerElement.setAttribute('smooth', 'true');
-        customMarkerElement.setAttribute('smoothCount', '10');
-        customMarkerElement.setAttribute('smoothTolerance', '0.01');
-        customMarkerElement.setAttribute('smoothThreshold', '5');
         
-        // Добавляем содержимое
-        customMarkerElement.innerHTML = `
-          <a-box 
-            color="#4169E1" 
-            position="0 0.5 0" 
-            scale="0.5 0.5 0.5"
-            animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
-          </a-box>
-          
-          <a-entity 
-            obj-model="obj: url(model.obj); mtl: url(model.mtl)"
-            scale="2 2 2"
-            rotation="0 180 0"
-            position="0 0 0">
-          </a-entity>
-          
-          <a-entity position="0 1.2 0" rotation="-15 0 0">
-            <a-text 
-              value="Иван Иванов\\nДизайнер\\n(Мой маркер)" 
-              align="center" 
-              width="1.8"
-              color="#000000"
-              shader="sdf"
-              font="https://cdn.aframe.io/fonts/Roboto-msdf.json">
-            </a-text>
-          </a-entity>
-        `;
-        
-        // События для кастомного маркера
-        customMarkerElement.addEventListener('markerFound', () => {
-          log('🎯 КАСТОМНЫЙ МАРКЕР НАЙДЕН!', 'success');
-          loading.textContent = '✅ Ваш маркер работает!';
-          loading.style.background = 'rgba(0,255,0,0.95)';
-          customMarkerExists = true;
-          
-          instructions.innerHTML = '✅ Ваш маркер работает отлично!';
-          markerSwitch.style.background = 'rgba(0,255,0,0.95)';
-        });
-
-        customMarkerElement.addEventListener('markerLost', () => {
-          log('📍 Кастомный маркер потерян');
-          loading.textContent = '📷 Наведите камеру на визитку';
-          loading.style.background = 'rgba(100,200,100,0.95)';
-        });
-        
-        scene.appendChild(customMarkerElement);
-        log('✓ Кастомный маркер добавлен в сцену', 'success');
-      }
-
-      // Переключение маркеров
-      async function switchMarker() {
-        if (hasError) {
-          log('⚠ Невозможно переключиться из-за ошибок', 'error');
-          return;
-        }
-
+       
         const hiroMarker = document.getElementById('hiroMarker');
         
         if (!useCustomMarker) {
@@ -428,3 +345,4 @@
     </script>
   </body>
 </html>
+
