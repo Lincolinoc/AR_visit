@@ -1,52 +1,54 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>WebAR визитка — пример</title>
+<script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1.6.0/dist/aframe-master.min.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
 
-  <!-- A-Frame и AR.js -->
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/master/aframe/build/aframe-ar.js"></script>
+<style>
+  .arjs-loader {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-  <style>
-    body { margin: 0; overflow: hidden; }
-    #loading { position: absolute; z-index: 5; left: 10px; top: 10px; background: rgba(255,255,255,0.9); padding: 8px; border-radius: 6px; }
-  </style>
-</head>
-<body>
-  <div id="loading">Наведите камеру на визитку</div>
+  .arjs-loader div {
+    text-align: center;
+    font-size: 1.25em;
+    color: white;
+  }
+</style>
 
-  <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-    <!-- Используем кастомный .patt (mycard.patt должен быть доступен по тому же хосту) -->
-    <a-marker type="pattern" url="mycard.patt">
-      <!-- 3D-модель .glb рядом с html (model.glb) -->
-    <a-entity obj-model="obj: url(model.obj); mtl: url(model.mtl)"
-          scale="0.5 0.5 0.5"
-          rotation="0 180 0"
-          position="0 0 0">
-  </a-entity>
-
-      <!-- Текст или плавающие UI-элементы -->
-      <a-entity position="0 0.6 0" rotation="-20 0 0">
-        <a-text value="Иван Иванов\nДизайнер" align="center" width="1.6"></a-text>
+<body style="margin : 0px; overflow: hidden;">
+  <!-- minimal loader shown until image descriptors are loaded -->
+  <div class="arjs-loader">
+    <div>Loading, please wait...</div>
+  </div>
+  <a-scene
+    vr-mode-ui="enabled: false;"
+    renderer="logarithmicDepthBuffer: true; precision: medium;"
+    embedded
+    arjs="trackingMethod: best; sourceType: webcam;debugUIEnabled: false;"
+  >
+    <!-- we use cors proxy to avoid cross-origin problems ATTENTION! you need to set up your server -->
+    <a-nft
+      type="nft"
+      url="https://lincolinoc.github.io/AR_visit/"
+      smooth="true"
+      smoothCount="10"
+      smoothTolerance=".01"
+      smoothThreshold="5"
+    >
+      <a-entity
+        gltf-model="https://lincolinoc.github.io/AR_visit
+        scale="5 5 5"
+        position="150 300 -100"
+      >
       </a-entity>
-    </a-marker>
-
+    </a-nft>
     <a-entity camera></a-entity>
   </a-scene>
-
-  <script>
-    // Пример: сделать модель кликабельной — откроет ссылку при тапе
-    document.addEventListener('click', function (e) {
-      // упрощённо: если модель видима — открыть ссылку
-      var model = document.querySelector('#model');
-      if (model && model.object3D && model.object3D.visible) {
-        window.open('https://t.me/username', '_blank');
-      }
-    });
-  </script>
 </body>
-</html>
-
-
