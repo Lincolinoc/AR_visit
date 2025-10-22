@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>WebAR визитка — пример</title>
 
-    <!-- Новые библиотеки -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@latest/dist/aframe-extras.loaders.min.js"></script>
+    <!-- Проверенные версии -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@2.2.1/aframe/build/aframe-ar.js"></script>
 
     <style>
       body { margin: 0; overflow: hidden; }
@@ -30,16 +29,17 @@
     <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
       <a-marker type="pattern" url="mycard.patt">
 
-        <!-- Временный кубик для проверки -->
+        <!-- Проверочный куб -->
         <a-box color="red" position="0 0.2 0"></a-box>
 
-        <!-- Модель OBJ -->
+        <!-- Модель -->
         <a-entity obj-model="obj: url(model.obj); mtl: url(model.mtl)"
                   scale="2 2 2"
                   rotation="0 180 0"
                   position="0 0 0">
         </a-entity>
 
+        <!-- Текст -->
         <a-entity position="0 0.6 0" rotation="-20 0 0">
           <a-text value="Иван Иванов\nДизайнер" align="center" width="1.6"></a-text>
         </a-entity>
