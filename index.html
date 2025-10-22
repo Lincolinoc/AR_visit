@@ -4,8 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>WebAR визитка — пример</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@2.2.1/aframe/build/aframe-ar.js"></script>
     <style>
       body { 
         margin: 0; 
@@ -82,6 +80,15 @@
       .hidden {
         display: none !important;
       }
+      /* Важно: убедимся что видео видно */
+      video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+      }
     </style>
   </head>
   <body>
@@ -94,40 +101,18 @@
     <div id="loading" class="hidden">Инициализация...</div>
     <div id="debug" class="hidden"></div>
     
-    <a-scene
-      id="scene"
-      vr-mode-ui="enabled: false"
-      embedded
-      arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.9; trackingMethod: best;"
-      renderer="logarithmicDepthBuffer: true; precision: medium;">
-      
-      <a-marker type="pattern" url="mycard.patt" id="marker">
-        <a-box color="red" position="0 0.5 0" scale="0.5 0.5 0.5"></a-box>
-        
-        <a-entity
-          id="model"
-          obj-model="obj: url(model.obj); mtl: url(model.mtl)"
-          scale="2 2 2"
-          rotation="0 180 0"
-          position="0 0 0">
-        </a-entity>
-        
-        <a-entity position="0 1 0" rotation="-20 0 0">
-          <a-text value="Иван Иванов\nДизайнер" align="center" width="1.6" color="#000"></a-text>
-        </a-entity>
-      </a-marker>
-      
-      <a-entity camera></a-entity>
-    </a-scene>
+    <!-- Сцена изначально скрыта, загрузится только после клика -->
+    <div id="sceneContainer" class="hidden"></div>
+
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@2.2.1/aframe/build/aframe-ar.js"></script>
 
     <script>
       const startScreen = document.getElementById('startScreen');
       const startBtn = document.getElementById('startBtn');
       const debug = document.getElementById('debug');
       const loading = document.getElementById('loading');
-      const scene = document.getElementById('scene');
-      
-      let cameraStarted = false;
+      const sceneContainer = document.getElementById('sceneContainer');
       
       function log(msg) {
         console.log(msg);
@@ -136,124 +121,151 @@
         debug.scrollTop = debug.scrollHeight;
       }
 
+      log('✓ Страница загружена');
+      log('📱 ' + navigator.userAgent.substring(0, 50) + '...');
+
       // Обработчик кнопки запуска
-      startBtn.addEventListener('click', async () => {
-        log('🚀 Запуск AR...');
+      startBtn.addEventListener('click', () => {
+        log('🚀 Пользователь нажал кнопку');
         startBtn.disabled = true;
         startBtn.textContent = 'Загрузка...';
         
-        try {
-          // Явно запрашиваем доступ к камере
-          log('📷 Запрос доступа к камере...');
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-              facingMode: 'environment',
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            } 
+        // Скрываем стартовый экран
+        startScreen.classList.add('hidden');
+        loading.classList.remove('hidden');
+        loading.textContent = 'Загрузка AR...';
+        
+        log('🎬 Создание AR сцены...');
+        
+        // Создаём A-Frame сцену ПОСЛЕ клика пользователя
+        sceneContainer.innerHTML = `
+          <a-scene
+            id="scene"
+            vr-mode-ui="enabled: false"
+            embedded
+            arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.9;"
+            renderer="logarithmicDepthBuffer: true;">
+            
+            <a-marker type="pattern" url="mycard.patt" id="marker">
+              <a-box color="red" position="0 0.5 0" scale="0.5 0.5 0.5"></a-box>
+              
+              <a-entity
+                id="model"
+                obj-model="obj: url(model.obj); mtl: url(model.mtl)"
+                scale="2 2 2"
+                rotation="0 180 0"
+                position="0 0 0">
+              </a-entity>
+              
+              <a-entity position="0 1 0" rotation="-20 0 0">
+                <a-text value="Иван Иванов\nДизайнер" align="center" width="1.6" color="#000"></a-text>
+              </a-entity>
+            </a-marker>
+            
+            <a-entity camera></a-entity>
+          </a-scene>
+        `;
+        
+        sceneContainer.classList.remove('hidden');
+        
+        // Ждём создания сцены
+        setTimeout(() => {
+          const scene = document.getElementById('scene');
+          if (!scene) {
+            log('✗ Сцена не создалась');
+            return;
+          }
+          
+          log('✓ Сцена добавлена в DOM');
+          
+          // Проверка загрузки сцены
+          scene.addEventListener('loaded', () => {
+            log('✓ A-Frame сцена загружена');
           });
-          
-          log('✓ Доступ к камере получен');
-          cameraStarted = true;
-          
-          // Останавливаем поток, AR.js сам создаст новый
-          stream.getTracks().forEach(track => track.stop());
-          
-          // Скрываем стартовый экран
-          startScreen.classList.add('hidden');
-          loading.classList.remove('hidden');
-          loading.textContent = 'Загрузка AR...';
-          
-          // Даём A-Frame время инициализироваться
+
+          // Проверка AR.js
+          scene.addEventListener('renderstart', () => {
+            log('✓ Рендеринг начался');
+          });
+
+          // Отслеживание камеры
+          let cameraCheckCount = 0;
+          const cameraCheck = setInterval(() => {
+            const video = document.querySelector('video');
+            cameraCheckCount++;
+            
+            if (video) {
+              log('✓ Видео элемент найден');
+              log('  Размер: ' + video.videoWidth + 'x' + video.videoHeight);
+              log('  Воспроизведение: ' + !video.paused);
+              
+              if (video.videoWidth > 0) {
+                log('✓✓✓ КАМЕРА РАБОТАЕТ!');
+                loading.textContent = '📷 Наведите камеру на визитку';
+                loading.style.background = 'rgba(100,200,100,0.9)';
+                clearInterval(cameraCheck);
+              }
+            } else {
+              log('⏳ Ожидание видео... (' + cameraCheckCount + ')');
+            }
+            
+            if (cameraCheckCount > 20) {
+              log('✗ Таймаут ожидания камеры');
+              loading.textContent = '❌ Камера не запустилась';
+              loading.style.background = 'rgba(255,0,0,0.9)';
+              loading.style.color = 'white';
+              clearInterval(cameraCheck);
+            }
+          }, 500);
+
+          // Обнаружение маркера
           setTimeout(() => {
-            log('✓ A-Frame инициализирован');
-          }, 1000);
+            const marker = document.getElementById('marker');
+            if (marker) {
+              marker.addEventListener('markerFound', () => {
+                log('✓✓✓ МАРКЕР НАЙДЕН! 🎯');
+                loading.style.background = 'rgba(0,255,0,0.9)';
+                loading.textContent = '✓ Маркер обнаружен!';
+              });
+
+              marker.addEventListener('markerLost', () => {
+                log('⚠ Маркер потерян');
+                loading.style.background = 'rgba(255,255,255,0.9)';
+                loading.textContent = '📷 Наведите камеру на визитку';
+              });
+            }
+          }, 2000);
+
+          // Проверка загрузки модели
+          setTimeout(() => {
+            const model = document.getElementById('model');
+            if (model) {
+              model.addEventListener('model-loaded', () => {
+                log('✓ 3D модель загружена');
+              });
+              model.addEventListener('model-error', (e) => {
+                log('⚠ Ошибка модели (не критично)');
+              });
+            }
+          }, 2000);
           
-        } catch (error) {
-          log('✗ ОШИБКА доступа к камере: ' + error.message);
-          startBtn.disabled = false;
-          startBtn.textContent = '🚀 Попробовать снова';
-          alert('Ошибка доступа к камере:\n' + error.message + '\n\nПроверьте:\n1. Используете ли вы HTTPS\n2. Разрешён ли доступ к камере в настройках браузера\n3. Не используется ли камера другим приложением');
-        }
+        }, 100);
       });
-
-      // Проверка загрузки сцены
-      scene.addEventListener('loaded', () => {
-        log('✓ A-Frame сцена загружена');
-      });
-
-      // Проверка AR.js
-      window.addEventListener('arjs-video-loaded', () => {
-        log('✓ Камера AR.js инициализирована');
-        loading.textContent = '📷 Наведите камеру на визитку';
-        loading.style.background = 'rgba(100,200,100,0.9)';
-      });
-
-      // Обнаружение маркера
-      const marker = document.getElementById('marker');
-      if (marker) {
-        marker.addEventListener('markerFound', () => {
-          log('✓ МАРКЕР НАЙДЕН! 🎯');
-          loading.style.background = 'rgba(0,255,0,0.9)';
-          loading.textContent = '✓ Маркер обнаружен!';
-        });
-
-        marker.addEventListener('markerLost', () => {
-          log('⚠ Маркер потерян');
-          loading.style.background = 'rgba(255,255,255,0.9)';
-          loading.textContent = '📷 Наведите камеру на визитку';
-        });
-      }
-
-      // Проверка загрузки модели
-      const model = document.getElementById('model');
-      if (model) {
-        model.addEventListener('model-loaded', () => {
-          log('✓ 3D модель загружена');
-        });
-        model.addEventListener('model-error', (e) => {
-          log('✗ Ошибка модели: ' + (e.detail || 'неизвестная'));
-        });
-      }
 
       // Общий обработчик ошибок
       window.addEventListener('error', (e) => {
-        log('✗ JS ОШИБКА: ' + e.message);
-      });
-
-      // Проверка видео через 7 секунд после старта
-      let checkVideoTimeout;
-      window.addEventListener('arjs-video-loaded', () => {
-        clearTimeout(checkVideoTimeout);
-        checkVideoTimeout = setTimeout(() => {
-          const video = document.querySelector('video');
-          if (!video || !video.srcObject) {
-            log('✗ Видео не найдено после инициализации');
-            loading.textContent = 'Ошибка камеры. Перезагрузите страницу';
-            loading.style.background = 'rgba(255,0,0,0.9)';
-            loading.style.color = 'white';
-          } else {
-            log('✓ Видеопоток активен: ' + video.videoWidth + 'x' + video.videoHeight);
-          }
-        }, 7000);
+        log('✗ ОШИБКА: ' + e.message);
       });
 
       // Проверка HTTPS
       if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        log('⚠ ВНИМАНИЕ: Сайт работает не через HTTPS!');
-        log('Камера может не работать без HTTPS');
+        log('⚠ ВНИМАНИЕ: Нет HTTPS! Камера может не работать');
       } else {
-        log('✓ Подключение через HTTPS');
+        log('✓ HTTPS активен');
       }
-
-      // Информация об устройстве
-      log('📱 Устройство: ' + (navigator.userAgent.match(/iPhone|iPad|Android/) || ['Desktop'])[0]);
-      log('🌐 Браузер: ' + (navigator.userAgent.match(/Safari|Chrome|Firefox/) || ['Unknown'])[0]);
     </script>
   </body>
 </html>
-
-
 
 
 
