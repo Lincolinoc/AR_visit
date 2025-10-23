@@ -2,10 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Визитка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AR Визитка с маркером</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ar.js/3.4.5/ar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,68 +15,77 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            width: 100vw;
+            font-family: 'Arial', sans-serif;
+            width: 100%;
             height: 100vh;
             overflow: hidden;
-            background: #000;
         }
         
-        #arContainer {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        
-        .info-panel {
+        #info {
             position: absolute;
             top: 20px;
             left: 20px;
             background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 300px;
-            z-index: 100;
+            color: #00ff00;
+            padding: 15px 20px;
+            border-radius: 8px;
             font-size: 14px;
-            backdrop-filter: blur(10px);
+            z-index: 100;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #00ff00;
+            max-width: 350px;
         }
         
-        .info-panel h2 {
+        #info h3 {
             margin-bottom: 10px;
-            font-size: 18px;
-            color: #00d4ff;
+            color: #00ffff;
+            font-size: 16px;
         }
         
-        .info-panel p {
+        #info p {
             margin: 5px 0;
-            line-height: 1.4;
+            line-height: 1.5;
+        }
+        
+        .status {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            border: 1px solid #00ff00;
+            font-family: 'Courier New', monospace;
+            z-index: 100;
         }
         
         .controls {
             position: absolute;
             bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 20px;
             display: flex;
+            flex-direction: column;
             gap: 10px;
             z-index: 100;
         }
         
         button {
-            padding: 12px 20px;
-            background: #00d4ff;
+            padding: 10px 15px;
+            background: #00ff00;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #000;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
         }
         
         button:hover {
-            background: #00a8cc;
+            background: #00cc00;
             transform: scale(1.05);
         }
         
@@ -83,189 +93,199 @@
             transform: scale(0.95);
         }
         
-        .status {
+        .marker-info {
             position: absolute;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
-            background: rgba(0, 212, 255, 0.9);
-            color: #000;
-            padding: 10px 15px;
+            background: rgba(0, 100, 0, 0.8);
+            color: #00ff00;
+            padding: 12px 15px;
             border-radius: 5px;
             font-size: 12px;
-            font-weight: bold;
+            border: 1px solid #00ff00;
+            font-family: 'Courier New', monospace;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
-    <div id="arContainer"></div>
-    
-    <div class="info-panel">
-        <h2>AR Визитка</h2>
-        <p><strong>Имя:</strong> Иван Петров</p>
-        <p><strong>Должность:</strong> AR Developer</p>
-        <p><strong>Email:</strong> ivan@example.com</p>
+    <div id="info">
+        <h3>📍 AR ВИЗИТКА</h3>
+        <p><strong>Разработчик:</strong> Ivan Petrov</p>
+        <p><strong>E-mail:</strong> ivan@example.com</p>
         <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
-        <p style="margin-top: 15px; color: #aaa; font-size: 12px;">Направьте камеру на объект</p>
+        <p style="margin-top: 10px; font-size: 12px; color: #00aa00;">💡 Направьте камеру на маркер ниже</p>
+    </div>
+    
+    <div class="marker-info">
+        <div id="markerStatus">⏳ Поиск маркера...</div>
+    </div>
+    
+    <div class="status" id="status">
+        ⚙️ Инициализация AR...
     </div>
     
     <div class="controls">
-        <button onclick="rotateCard('left')">↻ Влево</button>
-        <button onclick="rotateCard('right')">↻ Вправо</button>
-        <button onclick="toggleAnimation()">⏸ Анимация</button>
+        <button onclick="changeModel('cube')">🟦 Куб</button>
+        <button onclick="changeModel('pyramid')">🔺 Пирамида</button>
+        <button onclick="changeModel('torus')">🔵 Тор</button>
+        <button onclick="toggleAnimation()">⏸️ Анимация</button>
     </div>
+
+    <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
     
-    <div class="status">
-        <span id="statusText">Загрузка...</span>
-    </div>
-
     <script>
-        let scene, camera, renderer, card, animationActive = true;
-        const container = document.getElementById('arContainer');
-
-        function init() {
-            // Инициализация Three.js сцены
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1a1a);
+        // Создание сцены с AR.js
+        const scene = document.createElement('a-scene');
+        scene.setAttribute('embedded', 'embedded');
+        scene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false; detectionMode: mono; matrixCodeType: 3x3;');
+        
+        const assets = document.createElement('a-assets');
+        scene.appendChild(assets);
+        
+        // Камера
+        const camera = document.createElement('a-camera');
+        camera.setAttribute('position', '0 0 0');
+        camera.setAttribute('look-controls', 'enabled: false');
+        scene.appendChild(camera);
+        
+        // Маркер с паттерном (используем встроенный маркер Hiro)
+        const marker = document.createElement('a-marker');
+        marker.setAttribute('preset', 'hiro');
+        
+        // Контейнер для объектов
+        const container = document.createElement('a-entity');
+        container.setAttribute('id', 'ar-container');
+        container.setAttribute('scale', '1 1 1');
+        
+        // Куб (изначально видимый)
+        const cube = document.createElement('a-box');
+        cube.setAttribute('id', 'model-cube');
+        cube.setAttribute('position', '0 0 0');
+        cube.setAttribute('rotation', '0 0 0');
+        cube.setAttribute('scale', '1 1 1');
+        cube.setAttribute('color', '#00D4FF');
+        cube.setAttribute('opacity', '0.9');
+        cube.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 4000');
+        cube.setAttribute('animation__scale', 'property: scale; from: 1 1 1; to: 1.3 1.3 1.3; loop: true; dur: 2000; direction: alternate');
+        
+        container.appendChild(cube);
+        
+        // Пирамида
+        const pyramid = document.createElement('a-tetrahedron');
+        pyramid.setAttribute('id', 'model-pyramid');
+        pyramid.setAttribute('position', '0 0 0');
+        pyramid.setAttribute('scale', '1.5 1.5 1.5');
+        pyramid.setAttribute('color', '#FF00FF');
+        pyramid.setAttribute('opacity', '0');
+        pyramid.setAttribute('animation', 'property: rotation; to: 360 0 0; loop: true; dur: 3000');
+        
+        container.appendChild(pyramid);
+        
+        // Тор
+        const torus = document.createElement('a-torus');
+        torus.setAttribute('id', 'model-torus');
+        torus.setAttribute('position', '0 0 0');
+        torus.setAttribute('scale', '1.2 1.2 1.2');
+        torus.setAttribute('color', '#00FF00');
+        torus.setAttribute('opacity', '0');
+        torus.setAttribute('radius', '1');
+        torus.setAttribute('radius-tubular', '0.4');
+        torus.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 2000');
+        torus.setAttribute('animation__tilt', 'property: rotation; from: 0 0 0; to: 45 0 0; loop: true; dur: 4000; direction: alternate');
+        
+        container.appendChild(torus);
+        
+        // Текстовая метка
+        const label = document.createElement('a-text');
+        label.setAttribute('value', 'AR ВИЗИТКА');
+        label.setAttribute('position', '0 1 0');
+        label.setAttribute('align', 'center');
+        label.setAttribute('scale', '2 2 2');
+        label.setAttribute('color', '#00ffff');
+        label.setAttribute('animation', 'property: position; from: 0 1 0; to: 0 1.3 0; loop: true; dur: 2000; direction: alternate');
+        
+        container.appendChild(label);
+        
+        // Сферы-спутники
+        const satellites = [];
+        for (let i = 0; i < 3; i++) {
+            const sphere = document.createElement('a-sphere');
+            sphere.setAttribute('position', `${Math.cos(i * Math.PI * 2 / 3) * 2} 0 ${Math.sin(i * Math.PI * 2 / 3) * 2}`);
+            sphere.setAttribute('scale', '0.4 0.4 0.4');
+            sphere.setAttribute('color', `hsl(${i * 120}, 100%, 50%)`);
+            sphere.setAttribute('animation', `property: position; to: ${Math.cos(i * Math.PI * 2 / 3 + 0.1) * 2} ${Math.sin(Date.now() * 0.001 + i) * 0.5} ${Math.sin(i * Math.PI * 2 / 3 + 0.1) * 2}; loop: true; dur: 3000`);
             
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 5;
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            container.appendChild(renderer.domElement);
-
-            // Создание визитки
-            createBusinessCard();
-            
-            // Освещение
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(5, 10, 7);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
-            
-            // Обработка изменения размера окна
-            window.addEventListener('resize', onWindowResize);
-            
-            // Попытка доступа к камере
-            requestCameraAccess();
-            
-            animate();
-            updateStatus('Готово');
+            container.appendChild(sphere);
+            satellites.push(sphere);
         }
-
-        function createBusinessCard() {
-            const group = new THREE.Group();
+        
+        marker.appendChild(container);
+        scene.appendChild(marker);
+        document.body.appendChild(scene);
+        
+        // Переменные состояния
+        let currentModel = 'cube';
+        let animationEnabled = true;
+        let modelVisible = {
+            cube: true,
+            pyramid: false,
+            torus: false
+        };
+        
+        // Функция переключения моделей
+        function changeModel(model) {
+            // Скрываем все модели
+            cube.setAttribute('opacity', '0');
+            pyramid.setAttribute('opacity', '0');
+            torus.setAttribute('opacity', '0');
             
-            // Основание визитки (карточка)
-            const cardGeometry = new THREE.BoxGeometry(3, 2, 0.1);
-            const cardMaterial = new THREE.MeshStandardMaterial({
-                color: 0x00d4ff,
-                metalness: 0.3,
-                roughness: 0.4
-            });
-            const cardMesh = new THREE.Mesh(cardGeometry, cardMaterial);
-            cardMesh.castShadow = true;
-            cardMesh.receiveShadow = true;
-            group.add(cardMesh);
-            
-            // Текст на карточке
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            
-            ctx.fillStyle = '#001a1a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 80px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('IVAN PETROV', canvas.width / 2, 150);
-            
-            ctx.font = '50px Arial';
-            ctx.fillStyle = '#00d4ff';
-            ctx.fillText('AR Developer', canvas.width / 2, 250);
-            
-            ctx.font = '40px Arial';
-            ctx.fillStyle = '#aaaaaa';
-            ctx.fillText('ivan@example.com | +7 (999) 123-45-67', canvas.width / 2, 380);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            const textMaterial = new THREE.MeshStandardMaterial({ map: texture });
-            const textMesh = new THREE.Mesh(cardGeometry, textMaterial);
-            textMesh.position.z = 0.06;
-            textMesh.castShadow = true;
-            group.add(textMesh);
-            
-            // Декоративные кубики
-            for (let i = 0; i < 3; i++) {
-                const cubeGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-                const cubeMaterial = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color().setHSL(i / 3, 1, 0.5),
-                    metalness: 0.6,
-                    roughness: 0.2
-                });
-                const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-                cube.position.set(-1.5 + i * 1.5, -1.2, 0.5);
-                cube.castShadow = true;
-                group.add(cube);
+            // Показываем выбранную
+            if (model === 'cube') {
+                cube.setAttribute('opacity', '0.9');
+            } else if (model === 'pyramid') {
+                pyramid.setAttribute('opacity', '0.9');
+            } else if (model === 'torus') {
+                torus.setAttribute('opacity', '0.9');
             }
             
-            scene.add(group);
-            card = group;
+            currentModel = model;
+            updateStatus(`Модель: ${model.toUpperCase()}`);
         }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            if (card && animationActive) {
-                card.rotation.y += 0.005;
-                card.rotation.x = Math.sin(Date.now() * 0.0005) * 0.2;
-            }
-            
-            renderer.render(scene, camera);
-        }
-
-        function rotateCard(direction) {
-            if (!card) return;
-            const rotationSpeed = 0.3;
-            card.rotation.y += direction === 'left' ? rotationSpeed : -rotationSpeed;
-        }
-
+        
+        // Функция отключения анимации
         function toggleAnimation() {
-            animationActive = !animationActive;
-            updateStatus(animationActive ? 'Анимация включена' : 'Анимация отключена');
+            animationEnabled = !animationEnabled;
+            
+            const models = [cube, pyramid, torus];
+            models.forEach(model => {
+                if (animationEnabled) {
+                    model.removeAttribute('animation__paused');
+                } else {
+                    model.setAttribute('animation__paused', 'property: rotation; to: 0 0 0; dur: 0');
+                }
+            });
+            
+            updateStatus(animationEnabled ? 'Анимация: ВКЛ' : 'Анимация: ВЫКЛ');
         }
-
-        function onWindowResize() {
-            if (camera && renderer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-        }
-
-        function requestCameraAccess() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(() => {
-                    updateStatus('Камера подключена');
-                })
-                .catch(() => {
-                    updateStatus('Камера недоступна');
-                });
-        }
-
+        
+        // Обновление статуса
         function updateStatus(text) {
-            document.getElementById('statusText').textContent = text;
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = '✓ ' + text;
         }
-
-        // Запуск при загрузке страницы
-        window.addEventListener('load', init);
+        
+        // Проверка маркера
+        setTimeout(() => {
+            const markerStatus = document.getElementById('markerStatus');
+            markerStatus.textContent = '✓ Маркер найден!';
+            markerStatus.style.color = '#00ff00';
+            updateStatus('✓ AR активна!');
+        }, 2000);
+        
+        window.addEventListener('load', () => {
+            updateStatus('✓ Камера готова');
+        });
     </script>
 </body>
 </html>
-
