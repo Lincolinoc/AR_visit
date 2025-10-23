@@ -3,93 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src *; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data:; font-src * data:; connect-src *; media-src *;">
-    <title>AR Test</title>
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
+    <title>AR Визитка</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://jeromeetienne.github.io/AR.js/three.js/build/ar.js"></script>
     <style>
-        body, html {
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 100vw;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
             width: 100%;
             height: 100%;
-            font-family: Arial, sans-serif;
         }
         
         #info {
             position: fixed;
-            top: 10px;
-            left: 10px;
+            top: 15px;
+            left: 15px;
             background: rgba(0, 0, 0, 0.95);
             color: #0f0;
             padding: 15px;
             border-radius: 5px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 999;
+            border: 2px solid #0f0;
+            max-width: 280px;
+            line-height: 1.6;
+        }
+        
+        #status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 50, 0, 0.95);
+            color: #0f0;
+            padding: 12px 15px;
+            border-radius: 5px;
             font-size: 13px;
             font-family: monospace;
             z-index: 999;
-            max-width: 280px;
             border: 2px solid #0f0;
+            font-weight: bold;
         }
         
-        #info div {
-            margin: 5px 0;
-            line-height: 1.5;
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 999;
+        }
+        
+        button {
+            padding: 10px 12px;
+            background: #0f0;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #0c0;
+            transform: scale(1.05);
+        }
+        
+        button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <a-marker preset="hiro">
-            <a-box position="0 0 0" scale="0.8 0.8 0.8" color="#ff0000" animation="property: rotation; to: 0 360 0; loop: true; dur: 4000;"></a-box>
-            <a-text value="HELLO AR!" position="0 1 0" align="center" color="#00ff00" scale="2 2 2;"></a-text>
-        </a-marker>
-        <a-camera position="0 0 0"></a-camera>
-    </a-scene>
-    
     <div id="info">
-        <div>🎥 AR Тест</div>
-        <div id="log">Загрузка...</div>
+        <div>📡 AR Визитка</div>
+        <div id="log">Инициализация...</div>
         <div style="margin-top: 10px; font-size: 11px; color: #0a0;">
             Наведи на маркер Hiro
         </div>
     </div>
+    
+    <div id="status">
+        ⏳ Загрузка...
+    </div>
+    
+    <div id="controls">
+        <button onclick="switchModel(0)">🟦 Куб</button>
+        <button onclick="switchModel(1)">🔺 Сфера</button>
+        <button onclick="switchModel(2)">🟩 Тор</button>
+    </div>
 
     <script>
+        let camera, scene, renderer, marker;
+        let models = [];
+        let currentModel = 0;
+        let arToolkitContext, arToolkitSource;
+
         const log = document.getElementById('log');
-        const scene = document.querySelector('a-scene');
-        
-        function addLog(text) {
+        const status = document.getElementById('status');
+
+        function updateLog(text) {
             log.textContent = text;
             console.log(text);
         }
-        
-        // Проверка камеры
-        addLog('⏳ Проверка камеры...');
-        
-        navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
-        }).then(stream => {
-            addLog('✅ Камера работает!');
-            stream.getTracks().forEach(track => track.stop());
-        }).catch(err => {
-            addLog('❌ Ошибка камеры: ' + err.message);
-        });
-        
-        // Проверка A-Frame
-        setTimeout(() => {
-            if (scene && scene.hasLoaded) {
-                addLog('✅ A-Frame загружен!');
-            } else {
-                addLog('⏳ A-Frame загружается...');
+
+        function updateStatus(text) {
+            status.textContent = text;
+        }
+
+        async function init() {
+            updateLog('⏳ Инициализация Three.js...');
+            
+            // Сцена
+            scene = new THREE.Scene();
+            
+            // Камера
+            camera = new THREE.Camera();
+            scene.add(camera);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.domElement.style.position = 'absolute';
+            renderer.domElement.style.top = '0px';
+            renderer.domElement.style.left = '0px';
+            document.body.appendChild(renderer.domElement);
+
+            updateLog('⏳ Инициализация AR.js...');
+
+            // AR Toolkit Source
+            arToolkitSource = new THREEx.ArToolkitSource({
+                sourceType: 'webcam',
+            });
+
+            await new Promise(resolve => {
+                arToolkitSource.init(() => {
+                    updateLog('✅ Камера готова');
+                    resolve();
+                });
+            });
+
+            // AR Toolkit Context
+            let parameters = {
+                cameraParametersUrl: 'https://jeromeetienne.github.io/AR.js/three.js/data/camera_para.dat',
+                detectionMode: 'mono',
+                imageSmoothingEnabled: true,
+            };
+            arToolkitContext = new THREEx.ArToolkitContext(parameters);
+
+            arToolkitContext.init(() => {
+                updateLog('✅ AR.js инициализирован');
+                updateStatus('✅ Готово!');
+            });
+
+            // Маркер Hiro
+            marker = new THREEx.ArMarkerControls(arToolkitContext, camera, {
+                type: 'pattern',
+                patternUrl: 'https://jeromeetienne.github.io/AR.js/three.js/data/patt.hiro',
+            });
+
+            // Группа для объектов
+            let markerGroup = new THREE.Group();
+            marker.object3d.add(markerGroup);
+
+            // Куб
+            let cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+            let cubeMaterial = new THREE.MeshPhongMaterial({ color: '#ff0000' });
+            let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cube.position.y = 0.5;
+            cube.castShadow = true;
+            markerGroup.add(cube);
+            models.push(cube);
+
+            // Сфера
+            let sphereGeometry = new THREE.SphereGeometry(0.7, 32, 32);
+            let sphereMaterial = new THREE.MeshPhongMaterial({ color: '#00ff00' });
+            let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.y = 0.5;
+            sphere.visible = false;
+            sphere.castShadow = true;
+            markerGroup.add(sphere);
+            models.push(sphere);
+
+            // Тор
+            let torusGeometry = new THREE.TorusGeometry(0.6, 0.3, 16, 100);
+            let torusMaterial = new THREE.MeshPhongMaterial({ color: '#0000ff' });
+            let torus = new THREE.Mesh(torusGeometry, torusMaterial);
+            torus.position.y = 0.5;
+            torus.visible = false;
+            torus.castShadow = true;
+            markerGroup.add(torus);
+            models.push(torus);
+
+            // Текст
+            let textGeometry = new THREE.BoxGeometry(2, 0.2, 0.1);
+            let textMaterial = new THREE.MeshPhongMaterial({ color: '#00ffff' });
+            let textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            textMesh.position.y = 1.5;
+            markerGroup.add(textMesh);
+
+            // Освещение
+            let light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(10, 10, 10);
+            markerGroup.add(light);
+
+            let ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            markerGroup.add(ambientLight);
+
+            // Обработчик маркера
+            marker.object3d.addEventListener('markerFound', () => {
+                updateLog('✅ Маркер найден!');
+                updateStatus('✅ Маркер активен!');
+            });
+
+            marker.object3d.addEventListener('markerLost', () => {
+                updateLog('⏳ Маркер потерян');
+                updateStatus('⏳ Ожидание маркера...');
+            });
+
+            updateLog('✅ Инициализация завершена!');
+
+            // Обработчик изменения размера
+            window.addEventListener('resize', onWindowResize);
+
+            // Запуск анимации
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Обновление AR
+            if (arToolkitSource.ready !== false) {
+                arToolkitContext.update(arToolkitSource.domElement);
             }
-        }, 2000);
-        
-        setTimeout(() => {
-            addLog('✅ Готово!');
-        }, 4000);
+
+            // Вращение моделей
+            models.forEach(model => {
+                if (model.visible) {
+                    model.rotation.x += 0.01;
+                    model.rotation.y += 0.01;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function switchModel(index) {
+            models.forEach((model, i) => {
+                model.visible = i === index;
+            });
+            currentModel = index;
+            updateStatus(`✅ Модель ${index + 1}`);
+        }
+
+        function onWindowResize() {
+            arToolkitSource.onResizeElement();
+            arToolkitSource.copyElementSizeTo(renderer.domElement);
+            if (camera.aspect !== window.innerWidth / window.innerHeight) {
+                arToolkitContext.setProjectionMatrixCodeType('modelViewMatrix');
+                arToolkitContext.getDetectionMode();
+                arToolkitContext.update(arToolkitSource.domElement);
+            }
+        }
+
+        // Запуск
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
+
 
 
 
