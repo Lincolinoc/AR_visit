@@ -2,282 +2,90 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AR Визитка с маркером</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AR Test</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.5/aframe/build/aframe-ar.js"></script>
     <style>
-        * {
+        body, html {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            width: 100%;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-            background: #000;
-            overflow: hidden;
-        }
-        
-        a-scene {
             width: 100%;
             height: 100%;
+            font-family: Arial, sans-serif;
         }
         
-        #debug-info {
-            position: absolute;
+        #info {
+            position: fixed;
             top: 10px;
             left: 10px;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             color: #0f0;
             padding: 15px;
             border-radius: 5px;
-            font-size: 12px;
-            font-family: monospace;
-            z-index: 1000;
-            max-width: 300px;
-            line-height: 1.6;
-            border: 2px solid #0f0;
-        }
-        
-        #controls {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 1000;
-        }
-        
-        button {
-            padding: 10px 15px;
-            background: #0f0;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        
-        button:hover {
-            background: #0c0;
-            transform: scale(1.05);
-        }
-        
-        button:active {
-            transform: scale(0.95);
-        }
-        
-        #marker-status {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 50, 0, 0.95);
-            color: #0f0;
-            padding: 12px 15px;
-            border-radius: 5px;
             font-size: 13px;
             font-family: monospace;
-            z-index: 1000;
+            z-index: 999;
+            max-width: 280px;
             border: 2px solid #0f0;
-            font-weight: bold;
+        }
+        
+        #info div {
+            margin: 5px 0;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
-    <a-scene 
-        embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; matrixCodeType: 3x3; cameraParametersUrl: https://cdn.jsdelivr.net/npm/ar.js@3.4.5/three.js/examples/jsm/libs/OpenCV/camera_para.dat;">
-        
-        <a-assets>
-            <!-- Загрузка необходимых ресурсов -->
-        </a-assets>
-        
-        <!-- Маркер Hiro -->
-        <a-marker preset="hiro" id="main-marker">
-            
-            <!-- Основной куб -->
-            <a-box 
-                id="cube"
-                position="0 0 0" 
-                scale="0.8 0.8 0.8"
-                color="#00d4ff"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 4000;">
-            </a-box>
-            
-            <!-- Пирамида (скрыта) -->
-            <a-tetrahedron 
-                id="pyramid"
-                position="0 0 0" 
-                scale="1 1 1"
-                color="#ff00ff"
-                visible="false"
-                animation="property: rotation; to: 360 0 0; loop: true; dur: 3000;">
-            </a-tetrahedron>
-            
-            <!-- Тор (скрыта) -->
-            <a-torus 
-                id="torus"
-                position="0 0 0" 
-                scale="0.7 0.7 0.7"
-                color="#00ff00"
-                visible="false"
-                radius="1"
-                radius-tubular="0.3"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 2500;">
-            </a-torus>
-            
-            <!-- Текстовая метка -->
-            <a-text 
-                value="AR CARD"
-                position="0 1.2 0"
-                align="center"
-                scale="1.5 1.5 1.5"
-                color="#00ffff"
-                animation="property: position; from: 0 1.2 0; to: 0 1.5 0; loop: true; dur: 2000; direction: alternate;">
-            </a-text>
-            
-            <!-- Декоративные сферы -->
-            <a-sphere 
-                position="1.2 0 0" 
-                scale="0.3 0.3 0.3"
-                color="#ff6600">
-            </a-sphere>
-            
-            <a-sphere 
-                position="-0.6 1 0.7" 
-                scale="0.3 0.3 0.3"
-                color="#00ff99">
-            </a-sphere>
-            
-            <a-sphere 
-                position="-0.6 -1 0.7" 
-                scale="0.3 0.3 0.3"
-                color="#ff0099">
-            </a-sphere>
-            
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        <a-marker preset="hiro">
+            <a-box position="0 0 0" scale="0.8 0.8 0.8" color="#ff0000" animation="property: rotation; to: 0 360 0; loop: true; dur: 4000;"></a-box>
+            <a-text value="HELLO AR!" position="0 1 0" align="center" color="#00ff00" scale="2 2 2;"></a-text>
         </a-marker>
-        
-        <!-- Камера -->
         <a-camera position="0 0 0"></a-camera>
-        
     </a-scene>
     
-    <div id="debug-info">
-        <div>📡 AR Status:</div>
-        <div id="status-text">Инициализация...</div>
-        <div style="margin-top: 10px; color: #0a0; font-size: 11px;">
-            ✓ Наведи камеру на маркер Hiro
+    <div id="info">
+        <div>🎥 AR Тест</div>
+        <div id="log">Загрузка...</div>
+        <div style="margin-top: 10px; font-size: 11px; color: #0a0;">
+            Наведи на маркер Hiro
         </div>
-    </div>
-    
-    <div id="marker-status">
-        ⏳ Ожидание маркера...
-    </div>
-    
-    <div id="controls">
-        <button onclick="switchModel('cube')">🟦 Куб</button>
-        <button onclick="switchModel('pyramid')">🔺 Пирамида</button>
-        <button onclick="switchModel('torus')">🔵 Тор</button>
-        <button onclick="toggleAnimation()">⏸ Анимация</button>
     </div>
 
     <script>
-        let scene = document.querySelector('a-scene');
-        let marker = document.querySelector('a-marker');
-        let statusText = document.getElementById('status-text');
-        let markerStatus = document.getElementById('marker-status');
+        const log = document.getElementById('log');
+        const scene = document.querySelector('a-scene');
         
-        let currentModel = 'cube';
-        let animationEnabled = true;
-        
-        // Ожидание загрузки сцены
-        if (scene.hasLoaded) {
-            onSceneLoaded();
-        } else {
-            scene.addEventListener('loaded', onSceneLoaded);
-        }
-        
-        function onSceneLoaded() {
-            console.log('A-Frame сцена загружена');
-            updateStatus('✓ A-Frame готов');
-            
-            // Проверка разрешения на камеру
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(() => {
-                    updateStatus('✓ Камера включена');
-                })
-                .catch((err) => {
-                    updateStatus('✗ Нет доступа к камере!');
-                    console.error('Camera error:', err);
-                });
-        }
-        
-        // Отслеживание маркера
-        marker.addEventListener('markerFound', () => {
-            console.log('Маркер найден!');
-            markerStatus.textContent = '✓ Маркер найден!';
-            markerStatus.style.color = '#0f0';
-            markerStatus.style.borderColor = '#0f0';
-            updateStatus('✓ Маркер активен!');
-        });
-        
-        marker.addEventListener('markerLost', () => {
-            console.log('Маркер потерян');
-            markerStatus.textContent = '✗ Маркер потерян';
-            markerStatus.style.color = '#f00';
-            markerStatus.style.borderColor = '#f00';
-            updateStatus('⏳ Ожидание маркера...');
-        });
-        
-        function switchModel(modelName) {
-            // Скрываем все модели
-            document.getElementById('cube').setAttribute('visible', 'false');
-            document.getElementById('pyramid').setAttribute('visible', 'false');
-            document.getElementById('torus').setAttribute('visible', 'false');
-            
-            // Показываем выбранную
-            document.getElementById(modelName).setAttribute('visible', 'true');
-            currentModel = modelName;
-            
-            updateStatus(`✓ Модель: ${modelName.toUpperCase()}`);
-        }
-        
-        function toggleAnimation() {
-            animationEnabled = !animationEnabled;
-            
-            const models = ['cube', 'pyramid', 'torus'];
-            models.forEach(modelId => {
-                const el = document.getElementById(modelId);
-                if (animationEnabled) {
-                    el.setAttribute('animation', 'enabled', 'true');
-                } else {
-                    el.removeAttribute('animation');
-                }
-            });
-            
-            updateStatus(animationEnabled ? '✓ Анимация: ВКЛ' : '✗ Анимация: ВЫКЛ');
-        }
-        
-        function updateStatus(text) {
-            statusText.textContent = text;
+        function addLog(text) {
+            log.textContent = text;
             console.log(text);
         }
         
-        // Инициализация
-        updateStatus('⏳ Загрузка AR.js...');
+        // Проверка камеры
+        addLog('⏳ Проверка камеры...');
         
-        // Перепроверим через 3 секунды
+        navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+        }).then(stream => {
+            addLog('✅ Камера работает!');
+            stream.getTracks().forEach(track => track.stop());
+        }).catch(err => {
+            addLog('❌ Ошибка камеры: ' + err.message);
+        });
+        
+        // Проверка A-Frame
         setTimeout(() => {
             if (scene && scene.hasLoaded) {
-                updateStatus('✓ Готово! Наводи на маркер');
+                addLog('✅ A-Frame загружен!');
+            } else {
+                addLog('⏳ A-Frame загружается...');
             }
-        }, 3000);
+        }, 2000);
+        
+        setTimeout(() => {
+            addLog('✅ Готово!');
+        }, 4000);
     </script>
 </body>
 </html>
