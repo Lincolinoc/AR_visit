@@ -1,348 +1,271 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>WebAR визитка</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@latest/dist/aframe-extras.loaders.min.js"></script>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Визитка</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ar.js/3.4.5/ar.js"></script>
     <style>
-      body { 
-        margin: 0; 
-        overflow: hidden;
-        font-family: Arial, sans-serif;
-      }
-      .ui-panel {
-        position: absolute;
-        z-index: 5;
-        background: rgba(255,255,255,0.95);
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      }
-      #loading {
-        left: 10px;
-        top: 10px;
-      }
-      #markerSwitch {
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-        user-select: none;
-      }
-      #markerSwitch:hover {
-        background: rgba(200,220,255,0.95);
-      }
-      #debug {
-        position: absolute;
-        z-index: 5;
-        left: 10px;
-        bottom: 10px;
-        background: rgba(0,0,0,0.9);
-        color: #0f0;
-        padding: 10px;
-        border-radius: 8px;
-        font-family: 'Courier New', monospace;
-        font-size: 11px;
-        max-width: 90%;
-        max-height: 200px;
-        overflow-y: auto;
-        border: 1px solid #0f0;
-      }
-      #instructions {
-        position: absolute;
-        z-index: 5;
-        right: 10px;
-        bottom: 10px;
-        background: rgba(50,50,255,0.95);
-        color: white;
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        max-width: 200px;
-      }
-      .error { color: #ff5555; }
-      .warning { color: #ffaa00; }
-      .success { color: #00ff00; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        #arContainer {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 300px;
+            z-index: 100;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-panel h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #00d4ff;
+        }
+        
+        .info-panel p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background: #00d4ff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #00a8cc;
+            transform: scale(1.05);
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .status {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 212, 255, 0.9);
+            color: #000;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
-  </head>
-  <body>
-    <div id="loading" class="ui-panel">📷 Инициализация камеры...</div>
-    <div id="markerSwitch" class="ui-panel">🔄 Попробовать свой маркер</div>
-    <div id="instructions">
-      💡 Используйте Hiro маркер<br>
-      <a href="https://github.com/AR-js-org/AR.js/raw/master/data/images/hiro.png" 
-         target="_blank" 
-         style="color: #ffff00;">
-        📥 Скачать Hiro
-      </a>
+</head>
+<body>
+    <div id="arContainer"></div>
+    
+    <div class="info-panel">
+        <h2>AR Визитка</h2>
+        <p><strong>Имя:</strong> Иван Петров</p>
+        <p><strong>Должность:</strong> AR Developer</p>
+        <p><strong>Email:</strong> ivan@example.com</p>
+        <p><strong>Телефон:</strong> +7 (999) 123-45-67</p>
+        <p style="margin-top: 15px; color: #aaa; font-size: 12px;">Направьте камеру на объект</p>
     </div>
-    <div id="debug"></div>
     
-    <a-scene 
-      embedded 
-      arjs='sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;'
-      vr-mode-ui="enabled: false"
-      renderer="logarithmicDepthBuffer: true; precision: medium;">
-      
-      <!-- ТОЛЬКО HIRO маркер при старте -->
-      <a-marker 
-        preset="hiro" 
-        id="hiroMarker"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5">
-        
-        <a-box 
-          color="#FF4136" 
-          position="0 0.5 0" 
-          scale="0.5 0.5 0.5"
-          animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
-        </a-box>
-        
-        <a-entity 
-          obj-model="obj: url(model.obj); mtl: url(model.mtl)"
-          scale="2 2 2"
-          rotation="0 180 0"
-          position="0 0 0">
-        </a-entity>
-        
-        <a-entity position="0 1.2 0" rotation="-15 0 0">
-          <a-text 
-            value="Иван Иванов\nДизайнер" 
-            align="center" 
-            width="1.8"
-            color="#000000"
-            shader="sdf"
-            font="https://cdn.aframe.io/fonts/Roboto-msdf.json">
-          </a-text>
-        </a-entity>
-      </a-marker>
-      
-      <!-- Кастомный маркер будет добавлен динамически -->
-      
-      <a-entity camera></a-entity>
-    </a-scene>
-
+    <div class="controls">
+        <button onclick="rotateCard('left')">↻ Влево</button>
+        <button onclick="rotateCard('right')">↻ Вправо</button>
+        <button onclick="toggleAnimation()">⏸ Анимация</button>
+    </div>
     
-      }
+    <div class="status">
+        <span id="statusText">Загрузка...</span>
+    </div>
 
-      log('✓ Страница загружена');
-      log('🎯 Безопасный режим: только Hiro маркер', 'success');
-      
-      const ua = navigator.userAgent;
-      const device = ua.match(/iPhone|iPad/) ? 'iOS' : ua.match(/Android/) ? 'Android' : 'Desktop';
-      log('📱 Устройство: ' + device);
+    <script>
+        let scene, camera, renderer, card, animationActive = true;
+        const container = document.getElementById('arContainer');
 
-      // Функция создания кастомного маркера
-      function createCustomMarker() {
-        if (customMarkerElement) {
-          log('ℹ️  Кастомный маркер уже создан');
-          return;
+        function init() {
+            // Инициализация Three.js сцены
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Создание визитки
+            createBusinessCard();
+            
+            // Освещение
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            // Обработка изменения размера окна
+            window.addEventListener('resize', onWindowResize);
+            
+            // Попытка доступа к камере
+            requestCameraAccess();
+            
+            animate();
+            updateStatus('Готово');
         }
 
-        
-        
-       
-        const hiroMarker = document.getElementById('hiroMarker');
-        
-        if (!useCustomMarker) {
-          // Переключаемся на кастомный
-          loading.textContent = '⏳ Загрузка кастомного маркера...';
-          loading.style.background = 'rgba(255,200,0,0.95)';
-          
-          // Проверяем файл перед загрузкой
-          try {
-            const response = await fetch('mycard.patt');
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
+        function createBusinessCard() {
+            const group = new THREE.Group();
+            
+            // Основание визитки (карточка)
+            const cardGeometry = new THREE.BoxGeometry(3, 2, 0.1);
+            const cardMaterial = new THREE.MeshStandardMaterial({
+                color: 0x00d4ff,
+                metalness: 0.3,
+                roughness: 0.4
+            });
+            const cardMesh = new THREE.Mesh(cardGeometry, cardMaterial);
+            cardMesh.castShadow = true;
+            cardMesh.receiveShadow = true;
+            group.add(cardMesh);
+            
+            // Текст на карточке
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#001a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('IVAN PETROV', canvas.width / 2, 150);
+            
+            ctx.font = '50px Arial';
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillText('AR Developer', canvas.width / 2, 250);
+            
+            ctx.font = '40px Arial';
+            ctx.fillStyle = '#aaaaaa';
+            ctx.fillText('ivan@example.com | +7 (999) 123-45-67', canvas.width / 2, 380);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const textMaterial = new THREE.MeshStandardMaterial({ map: texture });
+            const textMesh = new THREE.Mesh(cardGeometry, textMaterial);
+            textMesh.position.z = 0.06;
+            textMesh.castShadow = true;
+            group.add(textMesh);
+            
+            // Декоративные кубики
+            for (let i = 0; i < 3; i++) {
+                const cubeGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+                const cubeMaterial = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color().setHSL(i / 3, 1, 0.5),
+                    metalness: 0.6,
+                    roughness: 0.2
+                });
+                const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                cube.position.set(-1.5 + i * 1.5, -1.2, 0.5);
+                cube.castShadow = true;
+                group.add(cube);
             }
-            const text = await response.text();
             
-            if (text.length < 100) {
-              throw new Error('Файл слишком маленький');
+            scene.add(group);
+            card = group;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (card && animationActive) {
+                card.rotation.y += 0.005;
+                card.rotation.x = Math.sin(Date.now() * 0.0005) * 0.2;
             }
             
-            log('✓ mycard.patt проверен, загрузка...', 'success');
-            
-            // Скрываем Hiro
-            hiroMarker.object3D.visible = false;
-            
-            // Создаём и показываем кастомный
-            createCustomMarker();
-            
-            useCustomMarker = true;
-            markerSwitch.textContent = '🔄 Вернуться к Hiro';
-            loading.textContent = '📷 Наведите на ВАШУ визитку';
-            instructions.innerHTML = '💡 Используется ваш маркер';
-            log('🔄 Активирован кастомный маркер', 'success');
-            
-          } catch (err) {
-            log(`✗ Ошибка загрузки маркера: ${err.message}`, 'error');
-            loading.textContent = '⚠ Файл маркера недоступен';
-            loading.style.background = 'rgba(255,100,0,0.95)';
-            instructions.innerHTML = '⚠ mycard.patt не найден<br>Используйте Hiro';
-            markerSwitch.style.display = 'none';
-          }
-          
-        } else {
-          // Возвращаемся к Hiro
-          if (customMarkerElement) {
-            customMarkerElement.object3D.visible = false;
-          }
-          hiroMarker.object3D.visible = true;
-          
-          useCustomMarker = false;
-          markerSwitch.textContent = '🔄 Попробовать свой маркер';
-          loading.textContent = '📷 Наведите на HIRO маркер';
-          instructions.innerHTML = `💡 Используйте Hiro маркер<br>
-            <a href="https://github.com/AR-js-org/AR.js/raw/master/data/images/hiro.png" 
-               target="_blank" 
-               style="color: #ffff00;">
-              📥 Скачать Hiro
-            </a>`;
-          log('🔄 Возврат к Hiro маркеру', 'success');
+            renderer.render(scene, camera);
         }
-      }
 
-      markerSwitch.addEventListener('click', switchMarker);
-
-      // Отслеживание сцены
-      const scene = document.querySelector('a-scene');
-      
-      scene.addEventListener('loaded', () => {
-        log('✓ A-Frame сцена загружена', 'success');
-      });
-
-      scene.addEventListener('renderstart', () => {
-        log('✓ Рендер запущен', 'success');
-      });
-
-      // Отслеживание камеры
-      const checkCamera = setInterval(() => {
-        const video = document.querySelector('video');
-        if (video && video.videoWidth > 0 && !cameraReady) {
-          cameraReady = true;
-          log(`✓ Камера активна: ${video.videoWidth}x${video.videoHeight}`, 'success');
-          loading.textContent = '📷 Наведите камеру на Hiro маркер';
-          loading.style.background = 'rgba(100,200,100,0.95)';
-          clearInterval(checkCamera);
+        function rotateCard(direction) {
+            if (!card) return;
+            const rotationSpeed = 0.3;
+            card.rotation.y += direction === 'left' ? rotationSpeed : -rotationSpeed;
         }
-      }, 500);
 
-      setTimeout(() => {
-        if (!cameraReady) {
-          log('✗ Камера не запустилась за 10 сек', 'error');
-          loading.textContent = '⚠ Проблема с камерой. Обновите страницу';
-          loading.style.background = 'rgba(255,100,0,0.95)';
+        function toggleAnimation() {
+            animationActive = !animationActive;
+            updateStatus(animationActive ? 'Анимация включена' : 'Анимация отключена');
         }
-        clearInterval(checkCamera);
-      }, 10000);
 
-      // Обработчики Hiro маркера
-      const hiroMarker = document.getElementById('hiroMarker');
-
-      hiroMarker.addEventListener('markerFound', () => {
-        log('🎯 HIRO МАРКЕР НАЙДЕН!', 'success');
-        loading.textContent = '✅ Hiro маркер работает!';
-        loading.style.background = 'rgba(0,255,0,0.95)';
-      });
-
-      hiroMarker.addEventListener('markerLost', () => {
-        log('📍 Hiro маркер потерян');
-        loading.textContent = '📷 Наведите на Hiro маркер';
-        loading.style.background = 'rgba(100,200,100,0.95)';
-      });
-
-      // Проверка файлов (в фоне)
-      setTimeout(() => {
-        fetch('model.obj')
-          .then(r => r.ok ? log('✓ model.obj найден', 'success') : log('⚠ model.obj недоступен', 'warning'))
-          .catch(() => log('⚠ model.obj недоступен', 'warning'));
-          
-        fetch('model.mtl')
-          .then(r => r.ok ? log('✓ model.mtl найден', 'success') : log('⚠ model.mtl недоступен', 'warning'))
-          .catch(() => log('⚠ model.mtl недоступен', 'warning'));
-      }, 2000);
-
-      // Проверка HTTPS
-      if (location.protocol === 'https:') {
-        log('✓ HTTPS активен', 'success');
-      } else {
-        log('⚠ Используется HTTP (рекомендуется HTTPS)', 'warning');
-      }
-
-      // Обработчик ошибок
-      let errorCount = 0;
-      const criticalErrors = new Set();
-      
-      window.addEventListener('error', (e) => {
-        const msg = e.message || e.error?.message || 'Unknown error';
-        
-        // Игнорируем повторы
-        if (criticalErrors.has(msg)) return;
-        criticalErrors.add(msg);
-        
-        errorCount++;
-        
-        // Игнорируем известные безвредные ошибки
-        if (msg.includes('message channel closed')) {
-          return; // Тихо игнорируем
-        }
-        
-        if (msg.includes('willReadFrequently')) {
-          return; // Это просто предупреждение о производительности
-        }
-        
-        if (errorCount <= 5) {
-          log(`✗ Ошибка: ${msg.substring(0, 80)}`, 'error');
-        }
-        
-        // Критические ошибки маркера
-        if (msg.includes('memory access out of bounds') || msg.includes('divide by zero')) {
-          hasError = true;
-          log('⚠ КРИТИЧЕСКАЯ ОШИБКА маркера!', 'error');
-          
-          // Если это произошло при попытке загрузки кастомного
-          if (useCustomMarker && customMarkerElement) {
-            log('🔄 Автоматический возврат к Hiro...', 'warning');
-            
-            // Удаляем проблемный маркер
-            if (customMarkerElement.parentNode) {
-              customMarkerElement.parentNode.removeChild(customMarkerElement);
+        function onWindowResize() {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
             }
-            customMarkerElement = null;
-            
-            // Возвращаемся к Hiro
-            document.getElementById('hiroMarker').object3D.visible = true;
-            useCustomMarker = false;
-            
-            markerSwitch.style.display = 'none';
-            loading.textContent = '⚠ Ошибка кастомного маркера';
-            loading.style.background = 'rgba(255,100,0,0.95)';
-            instructions.innerHTML = '⚠ Ваш .patt файл повреждён<br>Пересоздайте маркер';
-          }
         }
-      });
 
-      // Подсказки
-      setTimeout(() => {
-        log('💡 Советы для лучшего распознавания:');
-        log('  • Хорошее освещение');
-        log('  • Держите камеру ровно');
-        log('  • Расстояние 20-40 см');
-        log('  • Маркер должен быть полностью виден');
-      }, 5000);
-
-      setTimeout(() => {
-        if (cameraReady && !hasError) {
-          log('ℹ️  Создать свой маркер: ar-js-org.github.io/AR.js/marker-training/', 'warning');
+        function requestCameraAccess() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(() => {
+                    updateStatus('Камера подключена');
+                })
+                .catch(() => {
+                    updateStatus('Камера недоступна');
+                });
         }
-      }, 15000);
+
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // Запуск при загрузке страницы
+        window.addEventListener('load', init);
     </script>
-  </body>
+</body>
 </html>
 
