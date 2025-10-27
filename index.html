@@ -259,31 +259,21 @@
         }
 
         function setupVideoBackground() {
-            const videoCanvas = document.createElement('canvas');
-            const ctx = videoCanvas.getContext('2d');
-            videoCanvas.width = videoEl.videoWidth || 1280;
-            videoCanvas.height = videoEl.videoHeight || 720;
+            // Рисуем видео прямо перед 3D сценой
+            const canvas = renderer.domElement;
+            const originalRender = renderer.render.bind(renderer);
             
-            // Периодически обновляем фон с видео
-            const updateVideoFrame = () => {
-                if (videoEl.readyState === videoEl.HAVE_ENOUGH_DATA) {
-                    ctx.drawImage(videoEl, 0, 0, videoCanvas.width, videoCanvas.height);
-                    
-                    // Переносим кадр на основной canvas
-                    const mainCanvas = renderer.domElement;
-                    const mainCtx = mainCanvas.getContext('2d');
-                    
-                    // Масштабируем видео под размер canvas
-                    mainCtx.drawImage(
-                        videoCanvas, 
-                        0, 0, videoCanvas.width, videoCanvas.height,
-                        0, 0, mainCanvas.width, mainCanvas.height
-                    );
+            renderer.render = function(scene, camera) {
+                const ctx = canvas.getContext('2d');
+                
+                // Рисуем видео на canvas
+                if (videoEl.readyState === videoEl.HAVE_ENOUGH_DATA && ctx) {
+                    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
                 }
-                requestAnimationFrame(updateVideoFrame);
+                
+                // Рисуем 3D сцену поверх видео
+                originalRender(scene, camera);
             };
-            
-            updateVideoFrame();
         }
 
         function createObjects() {
@@ -360,8 +350,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
