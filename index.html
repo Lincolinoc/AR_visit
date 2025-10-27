@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR Визитка - WebXR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D AR Visualization</title>
     <style>
         * {
             margin: 0;
@@ -12,242 +12,306 @@
         }
         
         body {
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        #canvas {
+            display: block;
             width: 100vw;
             height: 100vh;
-            font-family: Arial, sans-serif;
-            background: #000;
-            overflow: hidden;
         }
         
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-        
-        #ui {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: rgba(0, 0, 0, 0.95);
-            color: #0f0;
-            padding: 15px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-family: monospace;
-            z-index: 999;
-            border: 2px solid #0f0;
-            max-width: 300px;
-            line-height: 1.6;
-        }
-        
-        #status {
-            position: fixed;
-            bottom: 20px;
+        #info {
+            position: absolute;
+            top: 20px;
             left: 20px;
-            background: rgba(0, 50, 0, 0.95);
-            color: #0f0;
-            padding: 12px 15px;
-            border-radius: 5px;
-            font-size: 13px;
-            font-family: monospace;
-            z-index: 999;
-            border: 2px solid #0f0;
-            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 100;
         }
         
-        #controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 999;
-        }
-        
-        button {
-            padding: 10px 12px;
-            background: #0f0;
-            color: #000;
+        #startBtn {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            transition: all 0.2s;
+            z-index: 100;
+            transition: background 0.3s;
         }
         
-        button:hover {
-            background: #0c0;
-            transform: scale(1.05);
+        #startBtn:hover {
+            background: #45a049;
         }
         
-        button:active {
-            transform: scale(0.95);
-        }
-        
-        button:disabled {
-            background: #888;
+        #startBtn:disabled {
+            background: #cccccc;
             cursor: not-allowed;
+        }
+        
+        #permission {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 200;
+            min-width: 300px;
+        }
+        
+        #permission h2 {
+            margin-bottom: 20px;
+        }
+        
+        #permission p {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        #permission button {
+            margin: 10px;
+            padding: 12px 30px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .allow-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .allow-btn:hover {
+            background: #45a049;
+        }
+        
+        .deny-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .deny-btn:hover {
+            background: #da190b;
+        }
+        
+        #hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
     
-    <div id="ui">
-        <div>📡 AR Визитка</div>
-        <div id="log">Инициализация...</div>
-        <div style="margin-top: 10px; font-size: 11px; color: #0a0;">
-            ✓ Камера активна
-        </div>
+    <div id="permission" class="hidden">
+        <h2>Доступ к камере</h2>
+        <p>Это приложение использует вашу камеру для отображения 3D моделей в дополненной реальности.</p>
+        <button class="allow-btn" onclick="requestCameraPermission()">Разрешить</button>
+        <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
     </div>
     
-    <div id="status">
-        ⏳ Загрузка...
+    <div id="info">
+        <div>📱 WebAR 3D Visualizer</div>
+        <div id="status">Инициализация...</div>
     </div>
     
-    <div id="controls">
-        <button id="arButton" onclick="startAR()">🎥 Запустить AR</button>
-        <button onclick="changeModel(0)">🟦 Куб</button>
-        <button onclick="changeModel(1)">🔺 Сфера</button>
-        <button onclick="changeModel(2)">🟩 Тор</button>
-    </div>
+    <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        let engine, scene, camera, light;
-        let models = [];
-        let currentModel = 0;
-        let isARActive = false;
+        let scene, camera, renderer;
+        let cubes = [];
+        let arSupported = false;
+        let cameraAccessDenied = false;
+        const statusEl = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const permissionDialog = document.getElementById('permission');
 
-        const log = document.getElementById('log');
-        const status = document.getElementById('status');
-        const arButton = document.getElementById('arButton');
-
-        function updateLog(text) {
-            log.textContent = text;
-            console.log(text);
-        }
-
-        function updateStatus(text) {
-            status.textContent = text;
-        }
-
-        function changeModel(index) {
-            models.forEach((m, i) => {
-                m.isVisible = i === index;
-            });
-            currentModel = index;
-            updateStatus(`✅ Модель ${index + 1}`);
-        }
-
-        async function init() {
-            updateLog('⏳ Инициализация Babylon.js...');
-
-            const canvas = document.getElementById('canvas');
-            engine = new BABYLON.Engine(canvas, true);
-
-            scene = new BABYLON.Scene(engine);
-            scene.collisionsEnabled = true;
-            scene.useRightHandedSystem = true;
-
-            camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(0, 1.6, 0), scene);
-            camera.attachControl(canvas, true);
-            camera.inertia = 0.7;
-            camera.angularSensibility = 1000;
-
-            light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(1, 1, 1), scene);
-            light.intensity = 1;
-
-            // Куб
-            const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 0.5 }, scene);
-            cube.position.z = 2;
-            const cubeMat = new BABYLON.StandardMaterial('cubeMat', scene);
-            cubeMat.diffuse = new BABYLON.Color3(1, 0, 0);
-            cube.material = cubeMat;
-            models.push(cube);
-
-            // Сфера
-            const sphere = BABYLON.MeshBuilder.CreateSphere('sphere', { diameter: 0.5 }, scene);
-            sphere.position.z = 2;
-            sphere.isVisible = false;
-            const sphereMat = new BABYLON.StandardMaterial('sphereMat', scene);
-            sphereMat.diffuse = new BABYLON.Color3(0, 1, 0);
-            sphere.material = sphereMat;
-            models.push(sphere);
-
-            // Тор
-            const torus = BABYLON.MeshBuilder.CreateTorus('torus', { diameter: 0.5, thickness: 0.2 }, scene);
-            torus.position.z = 2;
-            torus.isVisible = false;
-            const torusMat = new BABYLON.StandardMaterial('torusMat', scene);
-            torusMat.diffuse = new BABYLON.Color3(0, 0, 1);
-            torus.material = torusMat;
-            models.push(torus);
-
-            // Текст
-            const textPlane = BABYLON.MeshBuilder.CreateBox('text', { width: 1, height: 0.3, depth: 0.05 }, scene);
-            textPlane.position.z = 2;
-            textPlane.position.y = 0.8;
-            const textMat = new BABYLON.StandardMaterial('textMat', scene);
-            textMat.diffuse = new BABYLON.Color3(0, 1, 1);
-            textPlane.material = textMat;
-
-            // Анимация
-            scene.registerBeforeRender(() => {
-                models.forEach(model => {
-                    if (model.isVisible) {
-                        model.rotation.x += 0.01;
-                        model.rotation.y += 0.01;
-                    }
-                });
-                textPlane.position.y = 0.8 + Math.sin(Date.now() * 0.003) * 0.1;
-            });
-
-            window.addEventListener('resize', () => {
-                engine.resize();
-            });
-
-            engine.runRenderLoop(() => {
-                scene.render();
-            });
-
-            updateLog('✅ Babylon.js готов!');
-            updateStatus('✅ Готово!');
-            arButton.disabled = false;
-        }
-
-        async function startAR() {
-            updateLog('⏳ Запуск AR...');
+        // Проверка поддержки WebAR и запрос разрешения
+        function checkARSupport() {
+            const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+            arSupported = hasWebAR;
             
-            if (!navigator.mediaDevices) {
-                updateLog('❌ Камера недоступна');
-                return;
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
-                
-                updateLog('✅ Камера включена!');
-                updateStatus('✅ AR активна!');
-                isARActive = true;
-
-                // Останавливаем поток (просто для проверки)
-                stream.getTracks().forEach(track => track.stop());
-            } catch (err) {
-                updateLog('❌ Ошибка: ' + err.message);
+            if (arSupported) {
+                permissionDialog.classList.remove('hidden');
+            } else {
+                statusEl.textContent = '❌ AR не поддерживается';
+                startBtn.disabled = true;
             }
         }
 
-        window.addEventListener('load', init);
+        function requestCameraPermission() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    // Останавливаем поток, так как THREE.js управляет камерой
+                    stream.getTracks().forEach(track => track.stop());
+                    permissionDialog.classList.add('hidden');
+                    initScene();
+                })
+                .catch(err => {
+                    console.error('Ошибка доступа к камере:', err);
+                    statusEl.textContent = '❌ Доступ к камере запрещён';
+                    cameraAccessDenied = true;
+                });
+        }
+
+        function denyCameraPermission() {
+            permissionDialog.classList.add('hidden');
+            statusEl.textContent = '❌ Доступ к камере запрещён';
+            cameraAccessDenied = true;
+            startBtn.disabled = true;
+        }
+
+        function initScene() {
+            const canvas = document.getElementById('canvas');
+            
+            // Сцена
+            scene = new THREE.Scene();
+            scene.background = null;
+            
+            // Камера
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.z = 5;
+            
+            // Рендерер
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.xr.enabled = true;
+            
+            // Освещение
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            // Создаём 3D фигуры
+            createObjects();
+            
+            statusEl.textContent = '✅ Готово к AR';
+            startBtn.disabled = false;
+            startBtn.textContent = 'Запустить AR';
+            
+            // Обработка размера окна
+            window.addEventListener('resize', onWindowResize);
+            
+            // Запуск анимации
+            animate();
+        }
+
+        function createObjects() {
+            // Куб 1
+            const geom1 = new THREE.BoxGeometry(1, 1, 1);
+            const mat1 = new THREE.MeshStandardMaterial({ color: 0xff6b6b });
+            const cube1 = new THREE.Mesh(geom1, mat1);
+            cube1.position.set(-2, 0, 0);
+            scene.add(cube1);
+            cubes.push(cube1);
+            
+            // Куб 2
+            const geom2 = new THREE.BoxGeometry(1, 1, 1);
+            const mat2 = new THREE.MeshStandardMaterial({ color: 0x4ecdc4 });
+            const cube2 = new THREE.Mesh(geom2, mat2);
+            cube2.position.set(0, 0, 0);
+            scene.add(cube2);
+            cubes.push(cube2);
+            
+            // Куб 3
+            const geom3 = new THREE.BoxGeometry(1, 1, 1);
+            const mat3 = new THREE.MeshStandardMaterial({ color: 0xffe66d });
+            const cube3 = new THREE.Mesh(geom3, mat3);
+            cube3.position.set(2, 0, 0);
+            scene.add(cube3);
+            cubes.push(cube3);
+            
+            // Сфера для разнообразия
+            const geomSphere = new THREE.SphereGeometry(0.7, 32, 32);
+            const matSphere = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
+            const sphere = new THREE.Mesh(geomSphere, matSphere);
+            sphere.position.set(0, 2, 0);
+            scene.add(sphere);
+            cubes.push(sphere);
+        }
+
+        function toggleAR() {
+            startBtn.disabled = true;
+            
+            // Включаем камеру
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            })
+            .then(stream => {
+                // Если нужно, можно использовать видеопоток
+                // Но в нашем случае THREE.js рендерит 3D объекты поверх чёрного фона
+                // Для истинного наложения на видео нужна полная WebARSession
+                statusEl.textContent = '✅ AR активирована';
+                startBtn.textContent = 'AR включена';
+                
+                // Останавливаем трек когда не нужен
+                // stream.getTracks().forEach(track => track.stop());
+            })
+            .catch(err => {
+                console.error('Ошибка:', err);
+                statusEl.textContent = '❌ Ошибка доступа к камере';
+                startBtn.disabled = false;
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Вращение объектов
+            cubes.forEach((obj, idx) => {
+                obj.rotation.x += 0.005;
+                obj.rotation.y += 0.008;
+                obj.position.y += Math.sin(Date.now() * 0.001 + idx) * 0.01;
+            });
+            
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // Запуск при загрузке
+        window.addEventListener('load', checkARSupport);
     </script>
 </body>
 </html>
+
 
 
 
