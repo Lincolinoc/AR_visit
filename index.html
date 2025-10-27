@@ -213,9 +213,9 @@
             
             scene = new THREE.Scene();
             
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            camera = new THREE.PerspectiveCamera(75, screenWidth / screenHeight, 0.1, 1000);
             camera.position.z = 3;
             
             renderer = new THREE.WebGLRenderer({ 
@@ -223,7 +223,7 @@
                 alpha: false, 
                 antialias: true
             });
-            renderer.setSize(width, height);
+            renderer.setSize(screenWidth, screenHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setClearColor(0x000000);
             
@@ -233,10 +233,10 @@
             
             // Фон - плоскость с видео текстурой на весь экран
             const vFOV = camera.fov * Math.PI / 180; // вертикальный FOV в радианах
-            const height = 2 * Math.tan(vFOV / 2) * 10; // высота на расстоянии 10
-            const width = height * camera.aspect;
+            const bgHeight = 2 * Math.tan(vFOV / 2) * 10; // высота на расстоянии 10
+            const bgWidth = bgHeight * camera.aspect;
             
-            const bgGeometry = new THREE.PlaneGeometry(width, height);
+            const bgGeometry = new THREE.PlaneGeometry(bgWidth, bgHeight);
             const bgMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
             bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
             bgMesh.position.z = -10;
@@ -321,17 +321,18 @@
         }
 
         function onWindowResize() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            camera.aspect = width / height;
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            camera.aspect = newWidth / newHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
+            renderer.setSize(newWidth, newHeight);
         }
 
         window.addEventListener('load', checkARSupport);
     </script>
 </body>
 </html>
+
 
 
 
