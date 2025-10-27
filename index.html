@@ -231,11 +231,15 @@
             videoTexture = new THREE.VideoTexture(videoEl);
             videoTexture.colorSpace = THREE.SRGBColorSpace;
             
-            // Фон - плоскость с видео текстурой
-            const bgGeometry = new THREE.PlaneGeometry(2, 2);
+            // Фон - плоскость с видео текстурой на весь экран
+            const vFOV = camera.fov * Math.PI / 180; // вертикальный FOV в радианах
+            const height = 2 * Math.tan(vFOV / 2) * 10; // высота на расстоянии 10
+            const width = height * camera.aspect;
+            
+            const bgGeometry = new THREE.PlaneGeometry(width, height);
             const bgMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
             bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
-            bgMesh.position.z = -5;
+            bgMesh.position.z = -10;
             scene.add(bgMesh);
             
             // Освещение
@@ -258,15 +262,15 @@
 
         function createObjects() {
             // Куб 1
-            const geom1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const geom1 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const mat1 = new THREE.MeshStandardMaterial({ color: 0xff6b6b });
             const cube1 = new THREE.Mesh(geom1, mat1);
-            cube1.position.set(-1.2, 0, 0);
+            cube1.position.set(-0.5, 0, 0);
             scene.add(cube1);
             cubes.push(cube1);
             
             // Куб 2
-            const geom2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const geom2 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const mat2 = new THREE.MeshStandardMaterial({ color: 0x4ecdc4 });
             const cube2 = new THREE.Mesh(geom2, mat2);
             cube2.position.set(0, 0, 0);
@@ -274,18 +278,18 @@
             cubes.push(cube2);
             
             // Куб 3
-            const geom3 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const geom3 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const mat3 = new THREE.MeshStandardMaterial({ color: 0xffe66d });
             const cube3 = new THREE.Mesh(geom3, mat3);
-            cube3.position.set(1.2, 0, 0);
+            cube3.position.set(0.5, 0, 0);
             scene.add(cube3);
             cubes.push(cube3);
             
             // Сфера
-            const geomSphere = new THREE.SphereGeometry(0.6, 32, 32);
+            const geomSphere = new THREE.SphereGeometry(0.25, 32, 32);
             const matSphere = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
             const sphere = new THREE.Mesh(geomSphere, matSphere);
-            sphere.position.set(0, 1.5, 0);
+            sphere.position.set(0, 0.6, 0);
             scene.add(sphere);
             cubes.push(sphere);
         }
@@ -328,7 +332,6 @@
     </script>
 </body>
 </html>
-
 
 
 
