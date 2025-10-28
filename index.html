@@ -1,59 +1,4 @@
-function checkIntersection() {
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([sphere]);
-            
-            if (intersects.length > 0) {
-                selectedObject = intersects[0].object;
-            }
-        }
-
-        function loadBrainModel() {
-            // Проверяем, загружен ли GLTFLoader
-            if (typeof THREE.GLTFLoader === 'undefined') {
-                console.error('GLTFLoader ещё не загружен, пробуем ещё раз...');
-                setTimeout(loadBrainModel, 500);
-                return;
-            }
-            
-            const loader = new THREE.GLTFLoader();
-            // Путь к мозгу на GitHub (используем raw контент)
-            const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
-            
-            loader.load(brainPath, (gltf) => {
-                brain = gltf.scene;
-                brain.position.set(0, 0, 0);
-                brain.scale.set(1, 1, 1);
-                scene.add(brain);
-                cubes.push(brain);
-                console.log('✅ Мозг загружен успешно!');
-            }, undefined, (error) => {
-                console.error('❌ Ошибка загрузки мозга:', error);
-            });
-        }
-
-        function moveObject() {        window.addEventListener('load', checkARSupport);
-        
-        // 3D вращение иконок социальных сетей (только когда AR активна)
-        let rotationX = 0, rotationY = 0;
-        setInterval(() => {
-            if (arActive) {  // вращается только если AR включена
-                rotationY += 3;
-                rotationX += 1.5;
-                document.querySelectorAll('.social-btn').forEach(btn => {
-                    btn.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-                });
-            }
-        }, 30);
-        
-        // 3D вращение иконок социальных сетей
-        let rotationX = 0, rotationY = 0;
-        setInterval(() => {
-            rotationY += 3;
-            rotationX += 1.5;
-            document.querySelectorAll('.social-btn').forEach(btn => {
-                btn.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-            });
-        }, 30);<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -315,40 +260,12 @@ function checkIntersection() {
         let selectedObject = null;
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
-        let brain = null;  // модель мозга
+        let brain = null;
         
         const statusEl = document.getElementById('status');
         const startBtn = document.getElementById('startBtn');
         const permissionDialog = document.getElementById('permission');
         const videoEl = document.getElementById('video');
-        const userTextInput = document.getElementById('userText');
-
-        /**
-         * ОБЪЯСНЕНИЕ ИЗМЕНЕНИЯ КАМЕРЫ НА ВЕСЬ ЭКРАН:
-         * 
-         * Для изменения размера камеры на весь экран нужно менять:
-         * 
-         * 1. ФИКСИРОВАННОЕ ПОЗИЦИОНИРОВАНИЕ Canvas:
-         *    #canvas {
-         *        position: fixed;  <- ВАЖНО! Используем fixed вместо absolute
-         *        top: 0;
-         *        left: 0;
-         *        width: 100vw;     <- 100% ширины окна
-         *        height: 100vh;    <- 100% высоты окна
-         *    }
-         * 
-         * 2. РАЗМЕР RENDERER В JAVASCRIPT:
-         *    renderer.setSize(window.innerWidth, window.innerHeight);
-         * 
-         * 3. АСПЕКТ КАМЕРЫ:
-         *    camera.aspect = window.innerWidth / window.innerHeight;
-         *    camera.updateProjectionMatrix();
-         * 
-         * ЧТОБЫ ВЕРНУТЬ НАЗАД (не на весь экран):
-         *    - Измени #canvas с position: fixed на position: absolute
-         *    - Или сделай контейнер меньше через width/height
-         *    - Или используй фиксированные пиксели вместо 100vw/100vh
-         */
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -431,7 +348,7 @@ function checkIntersection() {
             scene.add(directionalLight);
             
             createObjects();
-            loadBrainModel();  // загружает 3D модель мозга
+            loadBrainModel();
             
             statusEl.textContent = '✅ Готово к AR';
             startBtn.disabled = false;
@@ -449,7 +366,6 @@ function checkIntersection() {
         }
 
         function createObjects() {
-            // Куб 1
             const geom1 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const mat1 = new THREE.MeshStandardMaterial({ color: 0xff6b6b });
             const cube1 = new THREE.Mesh(geom1, mat1);
@@ -457,7 +373,6 @@ function checkIntersection() {
             scene.add(cube1);
             cubes.push(cube1);
             
-            // Куб 2
             const geom2 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const mat2 = new THREE.MeshStandardMaterial({ color: 0x4ecdc4 });
             const cube2 = new THREE.Mesh(geom2, mat2);
@@ -465,7 +380,6 @@ function checkIntersection() {
             scene.add(cube2);
             cubes.push(cube2);
             
-            // Куб 3
             const geom3 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
             const mat3 = new THREE.MeshStandardMaterial({ color: 0xffe66d });
             const cube3 = new THREE.Mesh(geom3, mat3);
@@ -473,12 +387,27 @@ function checkIntersection() {
             scene.add(cube3);
             cubes.push(cube3);
             
-            // Сфера (теперь управляется только по клику/касанию)
             const geomSphere = new THREE.SphereGeometry(0.25, 32, 32);
             const matSphere = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
             sphere = new THREE.Mesh(geomSphere, matSphere);
             sphere.position.set(0, 0.6, 0);
             scene.add(sphere);
+        }
+
+        function loadBrainModel() {
+            const loader = new THREE.GLTFLoader();
+            const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
+            
+            loader.load(brainPath, function(gltf) {
+                brain = gltf.scene;
+                brain.position.set(0, 0, 0);
+                brain.scale.set(1, 1, 1);
+                scene.add(brain);
+                cubes.push(brain);
+                console.log('✅ Мозг загружен успешно!');
+            }, undefined, function(error) {
+                console.error('❌ Ошибка загрузки мозга:', error);
+            });
         }
 
         function onMouseDown(event) {
@@ -534,16 +463,18 @@ function checkIntersection() {
                 selectedObject = intersects[0].object;
             }
         }
-            if (!selectedObject) return;
+
+        function moveObject() {
+            if (!selectedObject) {
+                return;
+            }
             
             raycaster.setFromCamera(mouse, camera);
-            // Фиксируем Z координату, чтобы объект не уходил в глубину
             const zPos = selectedObject.position.z;
             const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPos);
             const intersection = new THREE.Vector3();
             raycaster.ray.intersectPlane(plane, intersection);
             
-            // Обновляем только X и Y, Z остаётся неизменным
             selectedObject.position.x = intersection.x;
             selectedObject.position.y = intersection.y;
         }
@@ -564,13 +495,10 @@ function checkIntersection() {
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // Кубы вращаются
-                cubes.forEach((obj, idx) => {
+                cubes.forEach((obj) => {
                     obj.rotation.x += 0.005;
                     obj.rotation.y += 0.008;
                 });
-                
-                // Сфера НЕ движется сама, только при клике/касании
             }
             
             renderer.render(scene, camera);
@@ -585,10 +513,20 @@ function checkIntersection() {
         }
 
         window.addEventListener('load', checkARSupport);
+        
+        let rotationX = 0, rotationY = 0;
+        setInterval(() => {
+            if (arActive) {
+                rotationY += 3;
+                rotationX += 1.5;
+                document.querySelectorAll('.social-btn').forEach(btn => {
+                    btn.style.transform = 'rotateX(' + rotationX + 'deg) rotateY(' + rotationY + 'deg)';
+                });
+            }
+        }, 30);
     </script>
 </body>
 </html>
-
 
 
 
