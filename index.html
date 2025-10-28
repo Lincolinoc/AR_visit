@@ -1,13 +1,15 @@
 window.addEventListener('load', checkARSupport);
         
-        // 3D вращение иконок социальных сетей
+        // 3D вращение иконок социальных сетей (только когда AR активна)
         let rotationX = 0, rotationY = 0;
         setInterval(() => {
-            rotationY += 3;
-            rotationX += 1.5;
-            document.querySelectorAll('.social-btn').forEach(btn => {
-                btn.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-            });
+            if (arActive) {  // вращается только если AR включена
+                rotationY += 3;
+                rotationX += 1.5;
+                document.querySelectorAll('.social-btn').forEach(btn => {
+                    btn.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+                });
+            }
         }, 30);
         
         // 3D вращение иконок социальных сетей
