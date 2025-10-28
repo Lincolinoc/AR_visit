@@ -501,9 +501,15 @@ window.addEventListener('load', checkARSupport);
             if (!selectedObject) return;
             
             raycaster.setFromCamera(mouse, camera);
-            const distance = camera.position.z - selectedObject.position.z;
-            const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), distance);
-            raycaster.ray.intersectPlane(plane, selectedObject.position);
+            // Фиксируем Z координату, чтобы объект не уходил в глубину
+            const zPos = selectedObject.position.z;
+            const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPos);
+            const intersection = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, intersection);
+            
+            // Обновляем только X и Y, Z остаётся неизменным
+            selectedObject.position.x = intersection.x;
+            selectedObject.position.y = intersection.y;
         }
 
         function toggleAR() {
@@ -546,6 +552,7 @@ window.addEventListener('load', checkARSupport);
     </script>
 </body>
 </html>
+
 
 
 
