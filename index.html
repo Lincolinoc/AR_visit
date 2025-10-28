@@ -11,33 +11,20 @@ function checkIntersection() {
             // Проверяем, загружен ли GLTFLoader
             if (typeof THREE.GLTFLoader === 'undefined') {
                 console.error('GLTFLoader ещё не загружен, пробуем ещё раз...');
-                setTimeout(loadBrainModel, 500);  // пробуем снова через 500мс
+                setTimeout(loadBrainModel, 500);
                 return;
             }
             
-            // Создаём loader для GLB файлов
             const loader = new THREE.GLTFLoader();
-            
-            // Загружай путь к своему файлу (измени на свой путь)
             loader.load('models/brain.glb', (gltf) => {
                 brain = gltf.scene;
-                
-                // Позиция мозга
                 brain.position.set(0, 0, 0);
-                
-                // Масштаб (если модель слишком большая или маленькая, измени число)
                 brain.scale.set(1, 1, 1);
-                
-                // Добавляем мозг в сцену
                 scene.add(brain);
-                
-                // Добавляем в массив для вращения
                 cubes.push(brain);
-                
                 console.log('✅ Мозг загружен успешно!');
             }, undefined, (error) => {
                 console.error('❌ Ошибка загрузки мозга:', error);
-                statusEl.textContent = '❌ Ошибка загрузки модели';
             });
         }
 
@@ -315,12 +302,7 @@ function checkIntersection() {
     <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Загружаем GLTFLoader глобально
-        const GLTFLoaderScript = document.createElement('script');
-        GLTFLoaderScript.src = 'https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js';
-        document.head.appendChild(GLTFLoaderScript);
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js"></script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
@@ -603,6 +585,7 @@ function checkIntersection() {
     </script>
 </body>
 </html>
+
 
 
 
