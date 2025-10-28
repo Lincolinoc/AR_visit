@@ -493,9 +493,7 @@ window.addEventListener('load', checkARSupport);
             const intersects = raycaster.intersectObjects([sphere]);
             
             if (intersects.length > 0) {
-                // Переключаем видимость шара при клике
-                sphere.visible = !sphere.visible;
-                selectedObject = null;
+                selectedObject = intersects[0].object;
             }
         }
 
@@ -548,6 +546,7 @@ window.addEventListener('load', checkARSupport);
     </script>
 </body>
 </html>
+
 
 
 
