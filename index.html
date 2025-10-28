@@ -16,7 +16,10 @@ function checkIntersection() {
             }
             
             const loader = new THREE.GLTFLoader();
-            loader.load('models/brain.glb', (gltf) => {
+            // Путь к мозгу на GitHub (используем raw контент)
+            const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
+            
+            loader.load(brainPath, (gltf) => {
                 brain = gltf.scene;
                 brain.position.set(0, 0, 0);
                 brain.scale.set(1, 1, 1);
@@ -585,6 +588,7 @@ function checkIntersection() {
     </script>
 </body>
 </html>
+
 
 
 
