@@ -1,4 +1,40 @@
-window.addEventListener('load', checkARSupport);
+function checkIntersection() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects([sphere]);
+            
+            if (intersects.length > 0) {
+                selectedObject = intersects[0].object;
+            }
+        }
+
+        function loadBrainModel() {
+            // Создаём loader для GLB файлов
+            const loader = new THREE.GLTFLoader();
+            
+            // Загружай путь к своему файлу (измени на свой путь)
+            loader.load('models/brain.glb', (gltf) => {
+                brain = gltf.scene;
+                
+                // Позиция мозга
+                brain.position.set(0, 0, 0);
+                
+                // Масштаб (если модель слишком большая или маленькая, измени число)
+                brain.scale.set(1, 1, 1);
+                
+                // Добавляем мозг в сцену
+                scene.add(brain);
+                
+                // Добавляем в массив для вращения
+                cubes.push(brain);
+                
+                console.log('✅ Мозг загружен успешно!');
+            }, undefined, (error) => {
+                console.error('❌ Ошибка загрузки мозга:', error);
+                statusEl.textContent = '❌ Ошибка загрузки модели';
+            });
+        }
+
+        function moveObject() {        window.addEventListener('load', checkARSupport);
         
         // 3D вращение иконок социальных сетей (только когда AR активна)
         let rotationX = 0, rotationY = 0;
@@ -272,6 +308,7 @@ window.addEventListener('load', checkARSupport);
     <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/GLTFLoader.js"></script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
@@ -281,6 +318,7 @@ window.addEventListener('load', checkARSupport);
         let selectedObject = null;
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
+        let brain = null;  // модель мозга
         
         const statusEl = document.getElementById('status');
         const startBtn = document.getElementById('startBtn');
@@ -396,6 +434,7 @@ window.addEventListener('load', checkARSupport);
             scene.add(directionalLight);
             
             createObjects();
+            loadBrainModel();  // загружает 3D модель мозга
             
             statusEl.textContent = '✅ Готово к AR';
             startBtn.disabled = false;
@@ -498,8 +537,6 @@ window.addEventListener('load', checkARSupport);
                 selectedObject = intersects[0].object;
             }
         }
-
-        function moveObject() {
             if (!selectedObject) return;
             
             raycaster.setFromCamera(mouse, camera);
@@ -554,6 +591,7 @@ window.addEventListener('load', checkARSupport);
     </script>
 </body>
 </html>
+
 
 
 
