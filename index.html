@@ -250,7 +250,12 @@
     <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // Загружаем GLTFLoader отдельно
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js';
+        document.head.appendChild(script);
+    </script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
@@ -395,7 +400,14 @@
         }
 
         function loadBrainModel() {
-            const loader = new THREE.GLTFLoader();
+            // Ждём, пока GLTFLoader загрузится
+            if (typeof GLTFLoader === 'undefined') {
+                console.log('GLTFLoader загружается...');
+                setTimeout(loadBrainModel, 500);
+                return;
+            }
+            
+            const loader = new GLTFLoader();
             const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
             
             loader.load(brainPath, function(gltf) {
