@@ -400,26 +400,29 @@
         }
 
         function loadBrainModel() {
-            // Ждём, пока GLTFLoader загрузится
-            if (typeof GLTFLoader === 'undefined') {
-                console.log('GLTFLoader загружается...');
-                setTimeout(loadBrainModel, 500);
-                return;
-            }
+            console.log('Попытка загрузить мозг...');
             
-            const loader = new GLTFLoader();
-            const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
-            
-            loader.load(brainPath, function(gltf) {
-                brain = gltf.scene;
-                brain.position.set(0, 0, 0);
-                brain.scale.set(1, 1, 1);
-                scene.add(brain);
-                cubes.push(brain);
-                console.log('✅ Мозг загружен успешно!');
-            }, undefined, function(error) {
-                console.error('❌ Ошибка загрузки мозга:', error);
-            });
+            // Используем динамическую загрузку GLTFLoader
+            const script = document.createElement('script');
+            script.onload = function() {
+                if (window.THREE && window.THREE.GLTFLoader) {
+                    const loader = new window.THREE.GLTFLoader();
+                    const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
+                    
+                    loader.load(brainPath, function(gltf) {
+                        brain = gltf.scene;
+                        brain.position.set(0, 0, 0);
+                        brain.scale.set(1, 1, 1);
+                        scene.add(brain);
+                        cubes.push(brain);
+                        console.log('✅ Мозг загружен успешно!');
+                    }, undefined, function(error) {
+                        console.error('❌ Ошибка загрузки мозга:', error);
+                    });
+                }
+            };
+            script.src = 'https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js';
+            document.head.appendChild(script);
         }
 
         function onMouseDown(event) {
@@ -539,7 +542,6 @@
     </script>
 </body>
 </html>
-
 
 
 
