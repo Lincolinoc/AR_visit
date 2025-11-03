@@ -93,12 +93,16 @@
             border: 2px solid #4CAF50;
             border-radius: 8px;
             cursor: pointer;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 150;
             transition: transform 0.3s;
             overflow: hidden;
+        }
+
+        #videoPlayer.visible {
+            display: flex;
         }
 
         #videoPlayer:hover {
@@ -374,10 +378,21 @@
         <small style="color: #888; font-size: 12px;">💡 Удерживайте палец на шаре чтобы переместить</small>
     </div>
     
-    <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
-        <video id="previewVideo" muted></video>
-        <div id="playButton">▶️</div>
-        <button id="fullscreenButton" onclick="toggleFullscreen(event)" title="Полный экран">⛶</button>
+    <div id="floatingText">
+        <span class="text-line">Улучшаю память • Концентрацию • Планирование</span>
+        <span class="text-line highlight">+30% эффективность уже через 3 недели</span>
+    </div>
+
+    <div id="buttonsContainer">
+        <button class="action-btn" onclick="alert('📅 Записаться на консультацию')">
+            📅 Записаться
+        </button>
+        <button class="action-btn" onclick="alert('🎯 Mini-тест концентрации')">
+            🎯 Mini-тест
+        </button>
+        <button class="action-btn" onclick="alert('📘 Мои методы')">
+            📘 Методы
+        </button>
     </div>
 
     <div id="videoModal" class="hidden" onclick="closeVideo()">
@@ -386,6 +401,12 @@
             <source src="https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4" type="video/mp4">
             Ваш браузер не поддерживает видео
         </video>
+    </div>
+    
+    <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
+        <video id="previewVideo" muted></video>
+        <div id="playButton">▶️</div>
+        <button id="fullscreenButton" onclick="toggleFullscreen(event)" title="Полный экран">⛶</button>
     </div>
     
     <div id="socialLinks">
@@ -776,6 +797,7 @@
     </script>
 </body>
 </html>
+
 
 
 
