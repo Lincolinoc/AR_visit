@@ -250,12 +250,7 @@
     <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Загружаем GLTFLoader отдельно
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js';
-        document.head.appendChild(script);
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/three-gltf-loader@3.1.0/index.min.js"></script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
