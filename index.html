@@ -407,19 +407,35 @@
             script.onload = function() {
                 if (window.THREE && window.THREE.GLTFLoader) {
                     const loader = new window.THREE.GLTFLoader();
+                    // Используем правильный путь к raw файлу на GitHub
                     const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
                     
-                    loader.load(brainPath, function(gltf) {
-                        brain = gltf.scene;
-                        brain.position.set(0, 0, 0);
-                        brain.scale.set(1, 1, 1);
-                        scene.add(brain);
-                        cubes.push(brain);
-                        console.log('✅ Мозг загружен успешно!');
-                    }, undefined, function(error) {
-                        console.error('❌ Ошибка загрузки мозга:', error);
-                    });
+                    console.log('Загружаю модель с:', brainPath);
+                    
+                    loader.load(
+                        brainPath, 
+                        function(gltf) {
+                            console.log('✅ Мозг загружен успешно!');
+                            brain = gltf.scene;
+                            brain.position.set(0, 0, 0);
+                            brain.scale.set(1, 1, 1);
+                            scene.add(brain);
+                            cubes.push(brain);
+                        }, 
+                        function(progress) {
+                            console.log('Загрузка:', Math.round((progress.loaded / progress.total) * 100) + '%');
+                        },
+                        function(error) {
+                            console.error('❌ Ошибка загрузки мозга:', error);
+                            console.error('URL:', brainPath);
+                        }
+                    );
+                } else {
+                    console.error('GLTFLoader не загружен');
                 }
+            };
+            script.onerror = function() {
+                console.error('Ошибка загрузки скрипта GLTFLoader');
             };
             script.src = 'https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js';
             document.head.appendChild(script);
