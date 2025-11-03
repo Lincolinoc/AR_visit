@@ -562,7 +562,7 @@
         }
 
         function getAdaptiveScale() {
-            return window.innerWidth < 768 ? 0.3 : 0.5;
+            return window.innerWidth < 768 ? 0.18 : 0.3;
         }
 
         function loadBrainModel() {
@@ -609,10 +609,6 @@
                 return;
             }
             
-            const isMobile = window.innerWidth < 768;
-            const scale = isMobile ? 0.3 : 0.5;
-            const posX = isMobile ? 0.8 : 1.5;
-            
             const loader = new THREE.GLTFLoader();
             const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
             
@@ -623,8 +619,10 @@
                 function(gltf) {
                     console.log('✅ Песочные часы загружены успешно!');
                     hourglass = gltf.scene;
+                    const hourglassScale = getAdaptiveScale();
+                    const posX = window.innerWidth < 768 ? 0.8 : 1.5;
                     hourglass.position.set(posX, 0, 0);
-                    hourglass.scale.set(scale, scale, scale);
+                    hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
                     scene.add(hourglass);
                     cubes.push(hourglass);
                 }, 
@@ -740,23 +738,19 @@
             renderer.setSize(newWidth, newHeight);
             
             // Переразмеры моделей при изменении окна
+            const newScale = getAdaptiveScale();
+            
             if (sphere) {
-                const isMobile = newWidth < 768;
-                const newScale = isMobile ? 0.15 : 0.25;
-                sphere.scale.set(newScale, newScale, newScale);
+                sphere.scale.set(newScale * 0.6, newScale * 0.6, newScale * 0.6);
             }
             
             if (brain) {
-                const isMobile = newWidth < 768;
-                const newScale = isMobile ? 0.3 : 0.5;
                 brain.scale.set(newScale, newScale, newScale);
             }
             
             if (hourglass) {
-                const isMobile = newWidth < 768;
-                const newScale = isMobile ? 0.3 : 0.5;
-                const newPosX = isMobile ? 0.8 : 1.5;
                 hourglass.scale.set(newScale, newScale, newScale);
+                const newPosX = newWidth < 768 ? 0.8 : 1.5;
                 hourglass.position.x = newPosX;
             }
         }
@@ -859,6 +853,7 @@
     </script>
 </body>
 </html>
+
 
 
 
