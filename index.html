@@ -250,7 +250,7 @@
     <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three-gltf-loader@3.1.0/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
@@ -397,43 +397,36 @@
         function loadBrainModel() {
             console.log('Попытка загрузить мозг...');
             
-            // Используем динамическую загрузку GLTFLoader
-            const script = document.createElement('script');
-            script.onload = function() {
-                if (window.THREE && window.THREE.GLTFLoader) {
-                    const loader = new window.THREE.GLTFLoader();
-                    // Используем правильный путь к raw файлу на GitHub
-                    const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
-                    
-                    console.log('Загружаю модель с:', brainPath);
-                    
-                    loader.load(
-                        brainPath, 
-                        function(gltf) {
-                            console.log('✅ Мозг загружен успешно!');
-                            brain = gltf.scene;
-                            brain.position.set(0, 0, 0);
-                            brain.scale.set(1, 1, 1);
-                            scene.add(brain);
-                            cubes.push(brain);
-                        }, 
-                        function(progress) {
-                            console.log('Загрузка:', Math.round((progress.loaded / progress.total) * 100) + '%');
-                        },
-                        function(error) {
-                            console.error('❌ Ошибка загрузки мозга:', error);
-                            console.error('URL:', brainPath);
-                        }
-                    );
-                } else {
-                    console.error('GLTFLoader не загружен');
+            // Используем GLTFLoader, который уже загружен
+            if (!window.GLTFLoader && !THREE.GLTFLoader) {
+                console.error('GLTFLoader ещё не загружен');
+                setTimeout(loadBrainModel, 500);
+                return;
+            }
+            
+            const LoaderClass = window.GLTFLoader || THREE.GLTFLoader;
+            const loader = new LoaderClass();
+            const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
+            
+            console.log('Загружаю модель с:', brainPath);
+            
+            loader.load(
+                brainPath, 
+                function(gltf) {
+                    console.log('✅ Мозг загружен успешно!');
+                    brain = gltf.scene;
+                    brain.position.set(0, 0, 0);
+                    brain.scale.set(1, 1, 1);
+                    scene.add(brain);
+                    cubes.push(brain);
+                }, 
+                function(progress) {
+                    console.log('Загрузка:', Math.round((progress.loaded / progress.total) * 100) + '%');
+                },
+                function(error) {
+                    console.error('❌ Ошибка загрузки мозга:', error);
                 }
-            };
-            script.onerror = function() {
-                console.error('Ошибка загрузки скрипта GLTFLoader');
-            };
-            script.src = 'https://cdn.jsdelivr.net/npm/three@r128/examples/js/loaders/GLTFLoader.js';
-            document.head.appendChild(script);
+            );
         }
 
         function onMouseDown(event) {
