@@ -84,7 +84,8 @@
         
         #videoPlayer {
             position: fixed;
-            bottom: 20px;
+            bottom: auto;
+            top: 200px;
             left: 20px;
             width: 280px;
             height: 160px;
@@ -320,13 +321,14 @@
         <small style="color: #888; font-size: 12px;">💡 Удерживайте палец на шаре чтобы переместить</small>
     </div>
     
-    <div id="videoPlayer" onclick="openVideo()">
-        ▶️ Видео
+    <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
+        <video id="previewVideo" muted></video>
+        <div id="playButton">▶️</div>
     </div>
 
     <div id="videoModal" class="hidden" onclick="closeVideo()">
         <button id="closeVideo" onclick="closeVideo()">&times;</button>
-        <video id="playerVideo" controls style="max-height: 90vh;">
+        <video id="playerVideo" style="max-height: 90vh;">
             <source src="https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4" type="video/mp4">
             Ваш браузер не поддерживает видео
         </video>
@@ -625,16 +627,46 @@
             renderer.setSize(newWidth, newHeight);
         }
 
-        window.addEventListener('load', checkARSupport);
+        window.addEventListener('load', () => {
+            checkARSupport();
+            loadPreviewVideo();
+        });
         
+        let isPreviewPlaying = false;
+
+        function loadPreviewVideo() {
+            const previewVid = document.getElementById('previewVideo');
+            const videoUrl = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
+            previewVid.src = videoUrl;
+            previewVid.load();
+        }
+
+        function toggleVideoPlayer(event) {
+            event.stopPropagation();
+            const previewVid = document.getElementById('previewVideo');
+            const playBtn = document.getElementById('playButton');
+            
+            if (isPreviewPlaying) {
+                previewVid.pause();
+                playBtn.style.display = 'flex';
+                isPreviewPlaying = false;
+            } else {
+                previewVid.play();
+                playBtn.style.display = 'none';
+                isPreviewPlaying = true;
+            }
+        }
+
         function openVideo() {
             document.getElementById('videoModal').classList.remove('hidden');
-            document.getElementById('playerVideo').play();
+            const playerVid = document.getElementById('playerVideo');
+            playerVid.play();
         }
 
         function closeVideo() {
             document.getElementById('videoModal').classList.add('hidden');
-            document.getElementById('playerVideo').pause();
+            const playerVid = document.getElementById('playerVideo');
+            playerVid.pause();
         }
         
         document.addEventListener('keydown', (e) => {
@@ -656,8 +688,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
