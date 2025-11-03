@@ -118,12 +118,12 @@
 
         #floatingText {
             position: fixed;
-            top: 50%;
+            top: 45%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
             color: white;
-            font-size: 24px;
+            font-size: clamp(16px, 5vw, 28px);
             font-weight: bold;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.8), 0 0 20px rgba(76, 175, 80, 0.4);
             z-index: 90;
@@ -131,6 +131,7 @@
             animation: float 3s ease-in-out infinite;
             line-height: 1.5;
             display: none;
+            padding: 0 20px;
         }
 
         #floatingText.visible {
@@ -475,9 +476,11 @@
                         permissionDialog.classList.add('hidden');
                         
                         // Показываем видео, текст и кнопки после разрешения
-                        document.getElementById('videoPlayer').classList.add('visible');
-                        document.getElementById('floatingText').classList.add('visible');
-                        document.getElementById('buttonsContainer').classList.add('visible');
+                        setTimeout(() => {
+                            document.getElementById('videoPlayer').classList.add('visible');
+                            document.getElementById('floatingText').classList.add('visible');
+                            document.getElementById('buttonsContainer').classList.add('visible');
+                        }, 100);
                         
                         initScene();
                     };
@@ -815,6 +818,7 @@
     </script>
 </body>
 </html>
+
 
 
 
