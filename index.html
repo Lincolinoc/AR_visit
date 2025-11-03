@@ -112,49 +112,80 @@
             border-radius: 6px;
         }
 
-        #playButton {
-            position: absolute;
+        #floatingText {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: rgba(76, 175, 80, 0.9);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            pointer-events: none;
-            z-index: 10;
-            transition: background 0.3s;
-        }
-
-        #videoPlayer:hover #playButton {
-            background: rgba(76, 175, 80, 1);
-        }
-
-        #fullscreenButton {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            width: 40px;
-            height: 40px;
-            background: rgba(76, 175, 80, 0.8);
-            border: none;
-            border-radius: 4px;
+            text-align: center;
             color: white;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            transition: background 0.3s;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8), 0 0 20px rgba(76, 175, 80, 0.4);
+            z-index: 90;
+            pointer-events: none;
+            animation: float 3s ease-in-out infinite;
+            line-height: 1.5;
         }
 
-        #fullscreenButton:hover {
+        @keyframes float {
+            0%, 100% {
+                transform: translate(-50%, -50%);
+            }
+            50% {
+                transform: translate(-50%, -60%);
+            }
+        }
+
+        .text-line {
+            display: block;
+            font-size: 20px;
+            margin: 8px 0;
+            color: #4CAF50;
+        }
+
+        .text-line.highlight {
+            font-size: 18px;
+            color: #a78bfa;
+            margin-top: 15px;
+        }
+
+        #buttonsContainer {
+            position: fixed;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
+        }
+
+        .action-btn {
+            background: rgba(76, 175, 80, 0.9);
+            border: 2px solid #4CAF50;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn:hover {
             background: rgba(76, 175, 80, 1);
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
         }
 
         #videoModal {
@@ -346,6 +377,7 @@
     <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
         <video id="previewVideo" muted></video>
         <div id="playButton">▶️</div>
+        <button id="fullscreenButton" onclick="toggleFullscreen(event)" title="Полный экран">⛶</button>
     </div>
 
     <div id="videoModal" class="hidden" onclick="closeVideo()">
@@ -679,6 +711,40 @@
             }
         }
 
+        function toggleFullscreen(event) {
+            event.stopPropagation();
+            const previewVid = document.getElementById('previewVideo');
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            if (!document.fullscreenElement) {
+                if (previewVid.requestFullscreen) {
+                    previewVid.requestFullscreen();
+                } else if (previewVid.webkitRequestFullscreen) {
+                    previewVid.webkitRequestFullscreen();
+                } else if (previewVid.mozRequestFullScreen) {
+                    previewVid.mozRequestFullScreen();
+                } else if (previewVid.msRequestFullscreen) {
+                    previewVid.msRequestFullscreen();
+                }
+                
+                if (!isPreviewPlaying) {
+                    previewVid.play();
+                    document.getElementById('playButton').style.display = 'none';
+                    isPreviewPlaying = true;
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
         function openVideo() {
             document.getElementById('videoModal').classList.remove('hidden');
             const playerVid = document.getElementById('playerVideo');
@@ -710,7 +776,6 @@
     </script>
 </body>
 </html>
-
 
 
 
