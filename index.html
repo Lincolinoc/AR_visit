@@ -80,13 +80,62 @@
             color: rgba(255, 255, 255, 0.5);
         }
         
-        #socialLinks {
+        #videoPlayer {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 20px;
+            width: 200px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            cursor: pointer;
             display: flex;
-            gap: 15px;
+            align-items: center;
+            justify-content: center;
             z-index: 100;
+            font-size: 48px;
+            transition: transform 0.3s;
+        }
+
+        #videoPlayer:hover {
+            transform: scale(1.05);
+        }
+
+        #videoModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+
+        #videoModal video {
+            width: 90vw;
+            max-width: 800px;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        #closeVideo {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 48px;
+            color: white;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        #closeVideo:hover {
+            color: #ff6b6b;
         }
         
         .social-btn {
@@ -239,6 +288,18 @@
         <small style="color: #888; font-size: 12px;">💡 Удерживайте палец на шаре чтобы переместить</small>
     </div>
     
+    <div id="videoPlayer" onclick="openVideo()">
+        ▶️ Видео
+    </div>
+
+    <div id="videoModal" class="hidden" onclick="closeVideo()">
+        <button id="closeVideo" onclick="closeVideo()">&times;</button>
+        <video id="playerVideo" controls style="max-height: 90vh;">
+            <source src="https://yourusername.github.io/video.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео
+        </video>
+    </div>
+    
     <div id="socialLinks">
         <a href="https://facebook.com" target="_blank" class="social-btn facebook" title="Facebook">f</a>
         <a href="https://instagram.com" target="_blank" class="social-btn instagram" title="Instagram">📷</a>
@@ -261,6 +322,7 @@
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         let brain = null;
+        let hourglass = null;  // модель песочных часов
         
         const statusEl = document.getElementById('status');
         const startBtn = document.getElementById('startBtn');
@@ -349,6 +411,7 @@
             
             createObjects();
             loadBrainModel();
+            loadHourglassModel();  // загружает модель песочных часов
             
             statusEl.textContent = '✅ Готово к AR';
             startBtn.disabled = false;
@@ -366,27 +429,8 @@
         }
 
         function createObjects() {
-            const geom1 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-            const mat1 = new THREE.MeshStandardMaterial({ color: 0xff6b6b });
-            const cube1 = new THREE.Mesh(geom1, mat1);
-            cube1.position.set(-0.5, 0, 0);
-            scene.add(cube1);
-            cubes.push(cube1);
-            
-            const geom2 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-            const mat2 = new THREE.MeshStandardMaterial({ color: 0x4ecdc4 });
-            const cube2 = new THREE.Mesh(geom2, mat2);
-            cube2.position.set(0, 0, 0);
-            scene.add(cube2);
-            cubes.push(cube2);
-            
-            const geom3 = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-            const mat3 = new THREE.MeshStandardMaterial({ color: 0xffe66d });
-            const cube3 = new THREE.Mesh(geom3, mat3);
-            cube3.position.set(0.5, 0, 0);
-            scene.add(cube3);
-            cubes.push(cube3);
-            
+            // Кубы удалены - сейчас только сфера
+
             const geomSphere = new THREE.SphereGeometry(0.25, 32, 32);
             const matSphere = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
             sphere = new THREE.Mesh(geomSphere, matSphere);
@@ -406,7 +450,7 @@
             const loader = new THREE.GLTFLoader();
             const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
             
-            console.log('🧠 Загружаю модель с:', brainPath);
+            console.log('🧠 Загружаю мозг...');
             
             loader.load(
                 brainPath, 
@@ -414,8 +458,7 @@
                     console.log('✅ Мозг загружен успешно!');
                     brain = gltf.scene;
                     brain.position.set(0, 0, 0);
-                    // ⬇️ ЗДЕСЬ ИЗМЕНЯЙ РАЗМЕР МОЗГА ⬇️
-                    brain.scale.set(0.1, 0.1, 0.1);  // 0.5 = половинный размер, меняй число для большего/меньшего размера
+                    brain.scale.set(0.5, 0.5, 0.5);
                     scene.add(brain);
                     cubes.push(brain);
                 }, 
@@ -425,6 +468,41 @@
                 },
                 function(error) {
                     console.error('❌ Ошибка загрузки мозга:', error);
+                }
+            );
+        }
+
+        function loadHourglassModel() {
+            console.log('Попытка загрузить песочные часы...');
+            
+            if (!window.THREE.GLTFLoader) {
+                console.log('GLTFLoader загружается, ждём...');
+                setTimeout(loadHourglassModel, 1000);
+                return;
+            }
+            
+            const loader = new THREE.GLTFLoader();
+            // Замени на путь к твоему файлу песочных часов
+            const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
+            
+            console.log('⏳ Загружаю песочные часы...');
+            
+            loader.load(
+                hourglassPath, 
+                function(gltf) {
+                    console.log('✅ Песочные часы загружены успешно!');
+                    hourglass = gltf.scene;
+                    hourglass.position.set(1, 0, 0);  // позиция справа от мозга
+                    hourglass.scale.set(0.5, 0.5, 0.5);  // размер
+                    scene.add(hourglass);
+                    cubes.push(hourglass);  // добавляем для вращения
+                }, 
+                function(progress) {
+                    const percent = Math.round((progress.loaded / progress.total) * 100);
+                    console.log('📊 Загрузка часов:', percent + '%');
+                },
+                function(error) {
+                    console.error('❌ Ошибка загрузки часов:', error);
                 }
             );
         }
@@ -517,6 +595,7 @@
                 // Вращение всех объектов (кубы и мозг)
                 cubes.forEach((obj) => {
                     // ⬇️ ЗДЕСЬ ИЗМЕНЯЙ СКОРОСТЬ ВРАЩЕНИЯ ⬇️
+                    obj.rotation.x += 0.005;   // чем больше число (0.01, 0.02), тем быстрее вращение по X
                     obj.rotation.y += 0.008;   // чем больше число (0.01, 0.02), тем быстрее вращение по Y
                 });
             }
@@ -534,6 +613,25 @@
 
         window.addEventListener('load', checkARSupport);
         
+        // Функции для видеоплеера
+        function openVideo() {
+            document.getElementById('videoModal').classList.remove('hidden');
+            document.getElementById('playerVideo').play();
+        }
+
+        function closeVideo() {
+            document.getElementById('videoModal').classList.add('hidden');
+            document.getElementById('playerVideo').pause();
+        }
+        
+        // Закрытие видео при нажатии Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeVideo();
+            }
+        });
+        
+        // 3D вращение иконок социальных сетей (только когда AR активна)
         let rotationX = 0, rotationY = 0;
         setInterval(() => {
             if (arActive) {
@@ -547,6 +645,7 @@
     </script>
 </body>
 </html>
+
 
 
 
