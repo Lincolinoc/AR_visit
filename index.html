@@ -130,6 +130,11 @@
             pointer-events: none;
             animation: float 3s ease-in-out infinite;
             line-height: 1.5;
+            display: none;
+        }
+
+        #floatingText.visible {
+            display: block;
         }
 
         @keyframes float {
@@ -159,12 +164,16 @@
             bottom: 200px;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
+            display: none;
             gap: 15px;
             z-index: 100;
             flex-wrap: wrap;
             justify-content: center;
             max-width: 90vw;
+        }
+
+        #buttonsContainer.visible {
+            display: flex;
         }
 
         .action-btn {
@@ -464,6 +473,12 @@
                     videoBgEl.onloadedmetadata = () => {
                         videoBgEl.play();
                         permissionDialog.classList.add('hidden');
+                        
+                        // Показываем видео, текст и кнопки после разрешения
+                        document.getElementById('videoPlayer').classList.add('visible');
+                        document.getElementById('floatingText').classList.add('visible');
+                        document.getElementById('buttonsContainer').classList.add('visible');
+                        
                         initScene();
                     };
                 })
@@ -714,6 +729,9 @@
             const videoUrl = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
             previewVid.src = videoUrl;
             previewVid.load();
+            previewVid.addEventListener('loadedmetadata', function() {
+                console.log('✅ Видео загружено');
+            });
         }
 
         function toggleVideoPlayer(event) {
@@ -797,7 +815,6 @@
     </script>
 </body>
 </html>
-
 
 
 
