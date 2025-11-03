@@ -397,18 +397,16 @@
         function loadBrainModel() {
             console.log('Попытка загрузить мозг...');
             
-            // Используем GLTFLoader, который уже загружен
-            if (!window.GLTFLoader && !THREE.GLTFLoader) {
-                console.error('GLTFLoader ещё не загружен');
-                setTimeout(loadBrainModel, 500);
+            if (!window.THREE.GLTFLoader) {
+                console.log('GLTFLoader загружается, ждём...');
+                setTimeout(loadBrainModel, 1000);
                 return;
             }
             
-            const LoaderClass = window.GLTFLoader || THREE.GLTFLoader;
-            const loader = new LoaderClass();
+            const loader = new THREE.GLTFLoader();
             const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
             
-            console.log('Загружаю модель с:', brainPath);
+            console.log('🧠 Загружаю модель с:', brainPath);
             
             loader.load(
                 brainPath, 
@@ -416,12 +414,14 @@
                     console.log('✅ Мозг загружен успешно!');
                     brain = gltf.scene;
                     brain.position.set(0, 0, 0);
-                    brain.scale.set(1, 1, 1);
+                    // ⬇️ ЗДЕСЬ ИЗМЕНЯЙ РАЗМЕР МОЗГА ⬇️
+                    brain.scale.set(0.5, 0.5, 0.5);  // 0.5 = половинный размер, меняй число для большего/меньшего размера
                     scene.add(brain);
                     cubes.push(brain);
                 }, 
                 function(progress) {
-                    console.log('Загрузка:', Math.round((progress.loaded / progress.total) * 100) + '%');
+                    const percent = Math.round((progress.loaded / progress.total) * 100);
+                    console.log('📊 Загрузка мозга:', percent + '%');
                 },
                 function(error) {
                     console.error('❌ Ошибка загрузки мозга:', error);
@@ -514,9 +514,11 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
+                // Вращение всех объектов (кубы и мозг)
                 cubes.forEach((obj) => {
-                    obj.rotation.x += 0.005;
-                    obj.rotation.y += 0.008;
+                    // ⬇️ ЗДЕСЬ ИЗМЕНЯЙ СКОРОСТЬ ВРАЩЕНИЯ ⬇️
+                    obj.rotation.x += 0.005;   // чем больше число (0.01, 0.02), тем быстрее вращение по X
+                    obj.rotation.y += 0.008;   // чем больше число (0.01, 0.02), тем быстрее вращение по Y
                 });
             }
             
