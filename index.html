@@ -295,7 +295,7 @@
     <div id="videoModal" class="hidden" onclick="closeVideo()">
         <button id="closeVideo" onclick="closeVideo()">&times;</button>
         <video id="playerVideo" controls style="max-height: 90vh;">
-            <source src="https://github.com/Lincolinoc/AR_visit/blob/main/videos/video1.mp4" type="video/mp4">
+            <source src="https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4" type="video/mp4">
             Ваш браузер не поддерживает видео
         </video>
     </div>
@@ -482,7 +482,6 @@
             }
             
             const loader = new THREE.GLTFLoader();
-            // Замени на путь к твоему файлу песочных часов
             const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
             
             console.log('⏳ Загружаю песочные часы...');
@@ -492,10 +491,10 @@
                 function(gltf) {
                     console.log('✅ Песочные часы загружены успешно!');
                     hourglass = gltf.scene;
-                    hourglass.position.set(1, 0, 0);  // позиция справа от мозга
-                    hourglass.scale.set(0.5, 0.5, 0.5);  // размер
+                    hourglass.position.set(1.5, 0, 0);  // позиция справа
+                    hourglass.scale.set(0.5, 0.5, 0.5);
                     scene.add(hourglass);
-                    cubes.push(hourglass);  // добавляем для вращения
+                    cubes.push(hourglass);
                 }, 
                 function(progress) {
                     const percent = Math.round((progress.loaded / progress.total) * 100);
@@ -645,6 +644,7 @@
     </script>
 </body>
 </html>
+
 
 
 
