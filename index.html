@@ -23,13 +23,14 @@
             height: 100vh;
         }
         
-        #video {
+        #videoBg {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
+            z-index: 1;
         }
         
         #canvas {
@@ -39,6 +40,7 @@
             display: block;
             width: 100vw;
             height: 100vh;
+            z-index: 50;
         }
         
         #info {
@@ -267,7 +269,7 @@
 </head>
 <body>
     <div id="container">
-        <video id="video" autoplay playsinline muted style="display: none;"></video>
+        <video id="videoBg" autoplay playsinline muted style="display: none;"></video>
         <canvas id="canvas"></canvas>
     </div>
     
@@ -317,17 +319,16 @@
         let cubes = [];
         let sphere;
         let arActive = false;
-        let videoTexture, bgMesh;
         let selectedObject = null;
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         let brain = null;
-        let hourglass = null;  // модель песочных часов
+        let hourglass = null;
         
         const statusEl = document.getElementById('status');
         const startBtn = document.getElementById('startBtn');
         const permissionDialog = document.getElementById('permission');
-        const videoEl = document.getElementById('video');
+        const videoBgEl = document.getElementById('videoBg');
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -350,10 +351,11 @@
                 } 
             })
                 .then(stream => {
-                    videoEl.srcObject = stream;
+                    videoBgEl.srcObject = stream;
+                    videoBgEl.style.display = 'block';
                     
-                    videoEl.onloadedmetadata = () => {
-                        videoEl.play();
+                    videoBgEl.onloadedmetadata = () => {
+                        videoBgEl.play();
                         permissionDialog.classList.add('hidden');
                         initScene();
                     };
@@ -382,25 +384,12 @@
             
             renderer = new THREE.WebGLRenderer({ 
                 canvas, 
-                alpha: false, 
+                alpha: true, 
                 antialias: true
             });
             renderer.setSize(screenWidth, screenHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setClearColor(0x000000);
-            
-            videoTexture = new THREE.VideoTexture(videoEl);
-            videoTexture.colorSpace = THREE.SRGBColorSpace;
-            
-            const vFOV = camera.fov * Math.PI / 180;
-            const bgHeight = 2 * Math.tan(vFOV / 2) * 10;
-            const bgWidth = bgHeight * camera.aspect;
-            
-            const bgGeometry = new THREE.PlaneGeometry(bgWidth, bgHeight);
-            const bgMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
-            bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
-            bgMesh.position.z = -10;
-            scene.add(bgMesh);
+            renderer.setClearColor(0x000000, 0);
             
             const ambientLight = new THREE.AmbientLight(0xffffff, 1);
             scene.add(ambientLight);
@@ -411,7 +400,7 @@
             
             createObjects();
             loadBrainModel();
-            loadHourglassModel();  // загружает модель песочных часов
+            loadHourglassModel();
             
             statusEl.textContent = '✅ Готово к AR';
             startBtn.disabled = false;
@@ -429,8 +418,6 @@
         }
 
         function createObjects() {
-            // Кубы удалены - сейчас только сфера
-
             const geomSphere = new THREE.SphereGeometry(0.25, 32, 32);
             const matSphere = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
             sphere = new THREE.Mesh(geomSphere, matSphere);
@@ -491,7 +478,7 @@
                 function(gltf) {
                     console.log('✅ Песочные часы загружены успешно!');
                     hourglass = gltf.scene;
-                    hourglass.position.set(1.5, 0, 0);  // позиция справа
+                    hourglass.position.set(1.5, 0, 0);
                     hourglass.scale.set(0.5, 0.5, 0.5);
                     scene.add(hourglass);
                     cubes.push(hourglass);
@@ -591,11 +578,9 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // Вращение всех объектов (кубы и мозг)
                 cubes.forEach((obj) => {
-                    // ⬇️ ЗДЕСЬ ИЗМЕНЯЙ СКОРОСТЬ ВРАЩЕНИЯ ⬇️
-                    obj.rotation.x += 0.005;   // чем больше число (0.01, 0.02), тем быстрее вращение по X
-                    obj.rotation.y += 0.008;   // чем больше число (0.01, 0.02), тем быстрее вращение по Y
+                    obj.rotation.x += 0.005;
+                    obj.rotation.y += 0.008;
                 });
             }
             
@@ -612,7 +597,6 @@
 
         window.addEventListener('load', checkARSupport);
         
-        // Функции для видеоплеера
         function openVideo() {
             document.getElementById('videoModal').classList.remove('hidden');
             document.getElementById('playerVideo').play();
@@ -623,14 +607,12 @@
             document.getElementById('playerVideo').pause();
         }
         
-        // Закрытие видео при нажатии Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeVideo();
             }
         });
         
-        // 3D вращение иконок социальных сетей (только когда AR активна)
         let rotationX = 0, rotationY = 0;
         setInterval(() => {
             if (arActive) {
