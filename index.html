@@ -235,7 +235,8 @@
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            font-size: clamp(18px, 3vw, 28px);
+            font-size: clamp(22px, 4vw, 32px);
+            font-weight: bold;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             transition: box-shadow 0.3s;
             transform-style: preserve-3d;
@@ -661,7 +662,6 @@
             
             if (arActive) {
                 cubes.forEach((obj) => {
-                    obj.rotation.x += 0.005;
                     obj.rotation.y += 0.008;
                 });
             }
@@ -682,7 +682,6 @@
             if (sphere) {
                 sphere.scale.set(newScale * 0.6, newScale * 0.6, newScale * 0.6);
             }
-            
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
             }
@@ -713,28 +712,31 @@
 
         function toggleVideoPlayer(event) {
             event.stopPropagation();
+            event.preventDefault();
             const previewVid = document.getElementById('previewVideo');
             const playBtn = document.getElementById('playButton');
             
             if (isPreviewPlaying) {
                 previewVid.pause();
-                playBtn.style.display = 'flex';
+                playBtn.style.opacity = '1';
                 isPreviewPlaying = false;
             } else {
                 previewVid.play();
-                playBtn.style.display = 'none';
+                playBtn.style.opacity = '0';
                 isPreviewPlaying = true;
             }
         }
 
         function toggleFullscreen(event) {
             event.stopPropagation();
+            event.preventDefault();
             const previewVid = document.getElementById('previewVideo');
-            const videoPlayer = document.getElementById('videoPlayer');
             
             if (!document.fullscreenElement) {
                 if (previewVid.requestFullscreen) {
-                    previewVid.requestFullscreen();
+                    previewVid.requestFullscreen().catch(err => {
+                        console.log('Fullscreen denied:', err);
+                    });
                 } else if (previewVid.webkitRequestFullscreen) {
                     previewVid.webkitRequestFullscreen();
                 } else if (previewVid.mozRequestFullScreen) {
@@ -745,7 +747,7 @@
                 
                 if (!isPreviewPlaying) {
                     previewVid.play();
-                    document.getElementById('playButton').style.display = 'none';
+                    document.getElementById('playButton').style.opacity = '0';
                     isPreviewPlaying = true;
                 }
             } else {
@@ -792,6 +794,7 @@
     </script>
 </body>
 </html>
+
 
 
 
