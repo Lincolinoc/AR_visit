@@ -1,4 +1,30 @@
-<!DOCTYPE html>
+function denyCameraPermission() {
+            permissionDialog.classList.add('hidden');
+        }
+
+        function initDeviceOrientation() {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS 13+
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            hasDeviceOrientation = true;
+                            window.addEventListener('deviceorientation', handleDeviceOrientation);
+                        }
+                    })
+                    .catch(console.error);
+            } else if (typeof DeviceOrientationEvent !== 'undefined') {
+                // Android и старые iOS
+                hasDeviceOrientation = true;
+                window.addEventListener('deviceorientation', handleDeviceOrientation);
+            }
+        }
+
+        function handleDeviceOrientation(event) {
+            alpha = event.alpha || 0; // Z axis rotation
+            beta = event.beta || 0;   // X axis rotation (pitch)
+            gamma = event.gamma || 0; // Y axis rotation (roll)
+        }<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -355,6 +381,7 @@
                         }, 100);
                         
                         initScene();
+                        initDeviceOrientation();
                     };
                 })
                 .catch(err => console.error('Ошибка доступа к камере:', err));
@@ -460,7 +487,20 @@
             
             if (arActive) {
                 cubes.forEach((obj) => {
+                    // Основное вращение по Y
+                    obj.rotation.order = 'YXZ'; // Важно! Устанавливаем порядок вращений
                     obj.rotation.y += 0.008;
+                    
+                    // Применяем наклон камеры на основе гироскопа
+                    if (hasDeviceOrientation) {
+                        const maxTilt = 0.15;
+                        const tiltX = (beta / 90) * maxTilt;
+                        const tiltZ = (gamma / 90) * maxTilt;
+                        
+                        // Плавная интерполяция наклонов
+                        obj.rotation.x += (tiltX - obj.rotation.x) * 0.08;
+                        obj.rotation.z += (tiltZ - obj.rotation.z) * 0.08;
+                    }
                 });
             }
             
