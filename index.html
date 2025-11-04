@@ -192,8 +192,8 @@
             cursor: pointer;
             transition: transform 0.3s;
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -588,7 +588,6 @@
                 Object.keys(socialModels).forEach(name => {
                     if (socialModels[name]) {
                         socialModels[name].rotation.y += 0.008;
-                        socialModels[name].rotation.z += 0.002;
                         const socialData = socialScenes[name];
                         if (socialData) {
                             socialData.renderer.render(socialData.scene, socialData.camera);
@@ -600,6 +599,7 @@
     </script>
 </body>
 </html>
+
 
 
 
