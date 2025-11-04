@@ -43,60 +43,6 @@
             z-index: 50;
         }
         
-        #info {
-            display: none;
-        }
-        
-        #textBox {
-            display: none;
-        }
-        
-        #videoPlayer {
-            position: fixed;
-            bottom: auto;
-            top: clamp(100px, 10vh, 200px);
-            left: clamp(10px, 3vw, 30px);
-            width: clamp(140px, 18vw, 240px);
-            height: auto;
-            aspect-ratio: 16 / 9;
-            background: rgba(0, 0, 0, 0.3);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            z-index: 150;
-            transition: transform 0.3s;
-            overflow: visible;
-            gap: 8px;
-        }
-
-        #videoPlayer.visible {
-            display: flex;
-        }
-
-        #videoPlayer:hover {
-            transform: scale(1.05);
-        }
-
-        #previewVideo {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            object-fit: cover;
-            border-radius: 6px;
-            flex-shrink: 0;
-        }
-
-        #videoControls {
-            display: flex;
-            gap: clamp(5px, 1vw, 10px);
-            justify-content: center;
-            width: 100%;
-            flex-shrink: 0;
-        }
-
         #floatingText {
             position: fixed;
             top: 50%;
@@ -182,46 +128,48 @@
             box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
         }
 
-        .action-btn:active {
-            transform: scale(0.95);
-        }
-
-        #videoModal {
+        #videoPlayer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-        }
-
-        #videoModal video {
-            width: 90vw;
-            max-width: 800px;
+            bottom: auto;
+            top: clamp(100px, 10vh, 200px);
+            left: clamp(10px, 3vw, 30px);
+            width: clamp(140px, 18vw, 240px);
             height: auto;
-            border-radius: 8px;
-        }
-
-        #closeVideo {
-            position: absolute;
-            top: 20px;
-            right: 40px;
-            font-size: 48px;
-            color: white;
-            cursor: pointer;
-            background: none;
+            aspect-ratio: 16 / 9;
+            background: rgba(0, 0, 0, 0.3);
             border: none;
-            padding: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            z-index: 150;
+            transition: transform 0.3s;
+            overflow: visible;
+            gap: 8px;
         }
 
-        #closeVideo:hover {
-            color: #ff6b6b;
+        #videoPlayer.visible {
+            display: flex;
         }
-        
+
+        #previewVideo {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        #videoControls {
+            display: flex;
+            gap: clamp(5px, 1vw, 10px);
+            justify-content: center;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
         #socialLinks {
             position: fixed;
             bottom: clamp(35px, 6vh, 80px);
@@ -239,18 +187,22 @@
         }
 
         .social-model {
-            width: clamp(40px, 8vw, 60px);
-            height: clamp(40px, 8vw, 60px);
+            width: clamp(60px, 12vw, 90px);
+            height: clamp(60px, 12vw, 90px);
             cursor: pointer;
             transition: transform 0.3s;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .social-model:hover {
             transform: scale(1.1);
-        }
-        
-        #startBtn {
-            display: none;
+            background: rgba(255, 255, 255, 0.1);
         }
         
         #permission {
@@ -324,16 +276,6 @@
         <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
     </div>
     
-    <div id="info">
-        <div>📱 WebAR 3D Visualizer</div>
-        <div id="status">Инициализация...</div>
-    </div>
-    
-    <div id="textBox">
-        <input type="text" id="userText" placeholder="Введите ваше имя или текст...">
-        <small style="color: #888; font-size: 12px;">💡 Удерживайте палец на шаре чтобы переместить</small>
-    </div>
-    
     <div id="floatingText">
         <span class="text-line">Улучшаю память • Концентрацию • Планирование</span>
         <span class="text-line highlight">+30% эффективность уже через 3 недели</span>
@@ -350,20 +292,11 @@
             📘 Методы
         </button>
     </div>
-
-    <div id="videoModal" class="hidden" onclick="closeVideo()">
-        <button id="closeVideo" onclick="closeVideo()">&times;</button>
-        <video id="playerVideo" style="max-height: 90vh;">
-            <source src="https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4" type="video/mp4">
-            Ваш браузер не поддерживает видео
-        </video>
-    </div>
     
     <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
         <video id="previewVideo" muted></video>
         <div id="videoControls">
             <div id="playButton">▶️</div>
-            <button id="fullscreenButton" onclick="toggleFullscreen(event)" title="Полный экран">⛶</button>
         </div>
     </div>
     
@@ -371,38 +304,25 @@
         <canvas id="socialModel1" class="social-model" title="Telegram"></canvas>
         <canvas id="socialModel2" class="social-model" title="ВКонтакте"></canvas>
     </div>
-    
-    <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
-        let sphere;
-        let arActive = false;
-        let selectedObject = null;
-        let raycaster = new THREE.Raycaster();
-        let mouse = new THREE.Vector2();
         let brain = null;
         let hourglass = null;
         let socialModels = {};
         let socialScenes = {};
         
-        const statusEl = document.getElementById('status');
-        const startBtn = document.getElementById('startBtn');
         const permissionDialog = document.getElementById('permission');
         const videoBgEl = document.getElementById('videoBg');
+        let arActive = false;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
-            
             if (hasWebAR) {
                 permissionDialog.classList.remove('hidden');
-            } else {
-                statusEl.textContent = '❌ AR не поддерживается';
-                startBtn.disabled = true;
-                permissionDialog.classList.add('hidden');
             }
         }
 
@@ -422,39 +342,31 @@
                         videoBgEl.play();
                         permissionDialog.classList.add('hidden');
                         
-                        // Показываем видео, текст и кнопки после разрешения
                         setTimeout(() => {
                             document.getElementById('videoPlayer').classList.add('visible');
                             document.getElementById('floatingText').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
                             document.getElementById('socialLinks').classList.add('visible');
-                            
-                            // Сразу запускаем AR
                             arActive = true;
                         }, 100);
                         
                         initScene();
                     };
                 })
-                .catch(err => {
-                    console.error('Ошибка доступа к камере:', err);
-                    statusEl.textContent = '❌ Доступ запрещён';
-                });
+                .catch(err => console.error('Ошибка доступа к камере:', err));
         }
 
         function denyCameraPermission() {
             permissionDialog.classList.add('hidden');
-            statusEl.textContent = '❌ Доступ запрещён';
-            startBtn.disabled = true;
         }
 
         function initScene() {
             const canvas = document.getElementById('canvas');
             
             scene = new THREE.Scene();
-            
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
+            
             camera = new THREE.PerspectiveCamera(75, screenWidth / screenHeight, 0.1, 1000);
             camera.position.z = 3;
             
@@ -474,27 +386,12 @@
             directionalLight.position.set(5, 5, 5);
             scene.add(directionalLight);
             
-            createObjects();
             loadBrainModel();
             loadHourglassModel();
             
-            statusEl.textContent = '✅ Готово к AR';
-            startBtn.disabled = false;
-            startBtn.textContent = '🎬 Запустить AR';
-            
             window.addEventListener('resize', onWindowResize);
-            canvas.addEventListener('mousedown', onMouseDown);
-            canvas.addEventListener('mousemove', onMouseMove);
-            canvas.addEventListener('mouseup', onMouseUp);
-            canvas.addEventListener('touchstart', onTouchStart);
-            canvas.addEventListener('touchmove', onTouchMove);
-            canvas.addEventListener('touchend', onTouchEnd);
             
             animate();
-        }
-
-        function createObjects() {
-            // Шар удалён
         }
 
         function getAdaptiveScale() {
@@ -502,10 +399,7 @@
         }
 
         function loadBrainModel() {
-            console.log('Попытка загрузить мозг...');
-            
             if (!window.THREE.GLTFLoader) {
-                console.log('GLTFLoader загружается, ждём...');
                 setTimeout(loadBrainModel, 1000);
                 return;
             }
@@ -513,12 +407,9 @@
             const loader = new THREE.GLTFLoader();
             const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
             
-            console.log('🧠 Загружаю мозг...');
-            
             loader.load(
                 brainPath, 
                 function(gltf) {
-                    console.log('✅ Мозг загружен успешно!');
                     brain = gltf.scene;
                     brain.position.set(0, 0, 0);
                     const brainScale = getAdaptiveScale();
@@ -526,10 +417,7 @@
                     scene.add(brain);
                     cubes.push(brain);
                 }, 
-                function(progress) {
-                    const percent = Math.round((progress.loaded / progress.total) * 100);
-                    console.log('📊 Загрузка мозга:', percent + '%');
-                },
+                undefined,
                 function(error) {
                     console.error('❌ Ошибка загрузки мозга:', error);
                 }
@@ -537,10 +425,7 @@
         }
 
         function loadHourglassModel() {
-            console.log('Попытка загрузить песочные часы...');
-            
             if (!window.THREE.GLTFLoader) {
-                console.log('GLTFLoader загружается, ждём...');
                 setTimeout(loadHourglassModel, 1000);
                 return;
             }
@@ -548,12 +433,9 @@
             const loader = new THREE.GLTFLoader();
             const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
             
-            console.log('⏳ Загружаю песочные часы...');
-            
             loader.load(
                 hourglassPath, 
                 function(gltf) {
-                    console.log('✅ Песочные часы загружены успешно!');
                     hourglass = gltf.scene;
                     const hourglassScale = getAdaptiveScale();
                     const posX = window.innerWidth < 768 ? 0.8 : 1.5;
@@ -562,95 +444,11 @@
                     scene.add(hourglass);
                     cubes.push(hourglass);
                 }, 
-                function(progress) {
-                    const percent = Math.round((progress.loaded / progress.total) * 100);
-                    console.log('📊 Загрузка часов:', percent + '%');
-                },
+                undefined,
                 function(error) {
                     console.error('❌ Ошибка загрузки часов:', error);
                 }
             );
-        }
-
-        function onMouseDown(event) {
-            getMousePos(event);
-            checkIntersection();
-        }
-
-        function onMouseMove(event) {
-            if (selectedObject) {
-                getMousePos(event);
-                moveObject();
-            }
-        }
-
-        function onMouseUp() {
-            selectedObject = null;
-        }
-
-        function onTouchStart(event) {
-            getTouchPos(event);
-            checkIntersection();
-        }
-
-        function onTouchMove(event) {
-            if (selectedObject) {
-                getTouchPos(event);
-                moveObject();
-            }
-        }
-
-        function onTouchEnd() {
-            selectedObject = null;
-        }
-
-        function getMousePos(event) {
-            const rect = renderer.domElement.getBoundingClientRect();
-            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        }
-
-        function getTouchPos(event) {
-            const rect = renderer.domElement.getBoundingClientRect();
-            const touch = event.touches[0];
-            mouse.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
-        }
-
-        function checkIntersection() {
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([sphere]);
-            
-            if (intersects.length > 0) {
-                selectedObject = intersects[0].object;
-            }
-        }
-
-        function moveObject() {
-            if (!selectedObject) {
-                return;
-            }
-            
-            raycaster.setFromCamera(mouse, camera);
-            const zPos = selectedObject.position.z;
-            const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -zPos);
-            const intersection = new THREE.Vector3();
-            raycaster.ray.intersectPlane(plane, intersection);
-            
-            selectedObject.position.x = intersection.x;
-            selectedObject.position.y = intersection.y;
-        }
-
-        function toggleAR() {
-            if (!arActive) {
-                arActive = true;
-                statusEl.textContent = '✅ AR активирована';
-                startBtn.textContent = '⏸ Остановить AR';
-            } else {
-                arActive = false;
-                statusEl.textContent = '⏸ AR остановлена';
-                startBtn.textContent = '🎬 Запустить AR';
-            }
         }
 
         function animate() {
@@ -672,39 +470,15 @@
             camera.updateProjectionMatrix();
             renderer.setSize(newWidth, newHeight);
             
-            // Переразмеры моделей при изменении окна
             const newScale = getAdaptiveScale();
-            
-            if (sphere) {
-                sphere.scale.set(newScale * 0.6, newScale * 0.6, newScale * 0.6);
-            }
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
             }
-            
             if (hourglass) {
                 hourglass.scale.set(newScale, newScale, newScale);
                 const newPosX = newWidth < 768 ? 0.8 : 1.5;
                 hourglass.position.x = newPosX;
             }
-        }
-
-        window.addEventListener('load', () => {
-            checkARSupport();
-            loadPreviewVideo();
-            loadSocialModels();
-        });
-        
-        let isPreviewPlaying = false;
-
-        function loadPreviewVideo() {
-            const previewVid = document.getElementById('previewVideo');
-            const videoUrl = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
-            previewVid.src = videoUrl;
-            previewVid.load();
-            previewVid.addEventListener('loadedmetadata', function() {
-                console.log('✅ Видео загружено');
-            });
         }
 
         function loadSocialModels() {
@@ -717,52 +491,60 @@
                 const canvas = document.getElementById(modelData.id);
                 if (!canvas) return;
 
-                const width = canvas.clientWidth || 60;
-                const height = canvas.clientHeight || 60;
-                canvas.width = width * window.devicePixelRatio;
-                canvas.height = height * window.devicePixelRatio;
+                // Увеличиваем размер canvas и добавляем padding
+                const baseSize = 90;
+                const scale = window.devicePixelRatio;
+                const canvasSize = baseSize * scale;
+                
+                canvas.width = canvasSize;
+                canvas.height = canvasSize;
 
                 const socialScene = new THREE.Scene();
                 socialScene.background = null;
                 socialScene.transparent = true;
 
-                const socialCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-                socialCamera.position.z = 1.5;
+                const socialCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+                socialCamera.position.z = 2;
+                
                 const socialRenderer = new THREE.WebGLRenderer({ 
                     canvas, 
                     alpha: true, 
                     antialias: true,
                     preserveDrawingBuffer: true
                 });
-                socialRenderer.setSize(width, height);
-                socialRenderer.setPixelRatio(window.devicePixelRatio);
+                socialRenderer.setSize(baseSize, baseSize);
+                socialRenderer.setPixelRatio(scale);
                 socialRenderer.setClearColor(0x000000, 0);
                 
-                // Первый рендер сцены
-                socialRenderer.render(socialScene, socialCamera);
-
-                const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
                 socialScene.add(ambientLight);
 
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
                 directionalLight.position.set(5, 5, 5);
                 socialScene.add(directionalLight);
 
                 const loader = new THREE.GLTFLoader();
                 loader.load(modelData.url, (gltf) => {
-                    console.log('✅ Загружена модель:', modelData.name);
                     const model = gltf.scene;
-                    model.position.set(0, 0, 0);
-                    model.scale.set(0.8, 0.8, 0.8);
-                    socialScene.add(model);
                     
+                    // Центрируем модель
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    model.position.sub(center);
+                    
+                    // Масштабируем с учётом размера
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 1.4 / maxDim;
+                    model.scale.multiplyScalar(scale);
+                    
+                    socialScene.add(model);
                     socialModels[modelData.name] = model;
                     socialScenes[modelData.name] = { scene: socialScene, renderer: socialRenderer, camera: socialCamera };
                     
-                    // Добавляем клик на canvas
-                    const canvas = document.getElementById(modelData.id);
-                    canvas.style.cursor = 'pointer';
-                    canvas.addEventListener('click', () => {
+                    const canvasEl = document.getElementById(modelData.id);
+                    canvasEl.style.cursor = 'pointer';
+                    canvasEl.addEventListener('click', () => {
                         if (modelData.name === 'telegram') {
                             window.open('https://t.me', '_blank');
                         } else if (modelData.name === 'vkontakte') {
@@ -775,9 +557,10 @@
             });
         }
 
+        let isPreviewPlaying = false;
+
         function toggleVideoPlayer(event) {
             event.stopPropagation();
-            event.preventDefault();
             const previewVid = document.getElementById('previewVideo');
             const playBtn = document.getElementById('playButton');
             
@@ -792,74 +575,20 @@
             }
         }
 
-        function toggleFullscreen(event) {
-            event.stopPropagation();
-            event.preventDefault();
+        window.addEventListener('load', () => {
+            checkARSupport();
             const previewVid = document.getElementById('previewVideo');
-            
-            if (!document.fullscreenElement) {
-                if (previewVid.requestFullscreen) {
-                    previewVid.requestFullscreen().catch(err => {
-                        console.log('Fullscreen denied:', err);
-                    });
-                } else if (previewVid.webkitRequestFullscreen) {
-                    previewVid.webkitRequestFullscreen();
-                } else if (previewVid.mozRequestFullScreen) {
-                    previewVid.mozRequestFullScreen();
-                } else if (previewVid.msRequestFullscreen) {
-                    previewVid.msRequestFullscreen();
-                }
-                
-                if (!isPreviewPlaying) {
-                    previewVid.play();
-                    document.getElementById('playButton').style.opacity = '0';
-                    isPreviewPlaying = true;
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-            }
-        }
-
-        function openVideo() {
-            document.getElementById('videoModal').classList.remove('hidden');
-            const playerVid = document.getElementById('playerVideo');
-            playerVid.play();
-        }
-
-        function closeVideo() {
-            document.getElementById('videoModal').classList.add('hidden');
-            const playerVid = document.getElementById('playerVideo');
-            playerVid.pause();
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeVideo();
-            }
+            previewVid.src = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
+            loadSocialModels();
         });
-        
-        let rotationX = 0, rotationY = 0;
+
+        // Анимация социальных моделей
         setInterval(() => {
             if (arActive) {
-                rotationY += 3;
-                
-                // Вращаем основные 3D модели
-                document.querySelectorAll('.social-btn').forEach(btn => {
-                    btn.style.transform = 'rotateY(' + rotationY + 'deg)';
-                });
-
-                // Вращаем социальные модели
                 Object.keys(socialModels).forEach(name => {
                     if (socialModels[name]) {
                         socialModels[name].rotation.y += 0.008;
+                        socialModels[name].rotation.z += 0.002;
                         const socialData = socialScenes[name];
                         if (socialData) {
                             socialData.renderer.render(socialData.scene, socialData.camera);
@@ -871,6 +600,7 @@
     </script>
 </body>
 </html>
+
 
 
 
