@@ -728,15 +728,18 @@
 
                 const socialCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
                 socialCamera.position.z = 1.5;
-
                 const socialRenderer = new THREE.WebGLRenderer({ 
                     canvas, 
                     alpha: true, 
-                    antialias: true 
+                    antialias: true,
+                    preserveDrawingBuffer: true
                 });
                 socialRenderer.setSize(width, height);
                 socialRenderer.setPixelRatio(window.devicePixelRatio);
                 socialRenderer.setClearColor(0x000000, 0);
+                
+                // Первый рендер сцены
+                socialRenderer.render(socialScene, socialCamera);
 
                 const ambientLight = new THREE.AmbientLight(0xffffff, 1);
                 socialScene.add(ambientLight);
@@ -755,6 +758,17 @@
                     
                     socialModels[modelData.name] = model;
                     socialScenes[modelData.name] = { scene: socialScene, renderer: socialRenderer, camera: socialCamera };
+                    
+                    // Добавляем клик на canvas
+                    const canvas = document.getElementById(modelData.id);
+                    canvas.style.cursor = 'pointer';
+                    canvas.addEventListener('click', () => {
+                        if (modelData.name === 'telegram') {
+                            window.open('https://t.me', '_blank');
+                        } else if (modelData.name === 'vkontakte') {
+                            window.open('https://vk.com', '_blank');
+                        }
+                    });
                 }, undefined, (error) => {
                     console.error('❌ Ошибка загрузки', modelData.name, ':', error);
                 });
