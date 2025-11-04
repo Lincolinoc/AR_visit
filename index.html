@@ -1,4 +1,16 @@
-function denyCameraPermission() {
+<div id="permission">
+        <h2>📱 Доступ к камере</h2>
+        <p>Это приложение использует вашу камеру для отображения 3D моделей в дополненной реальности.</p>
+        <button class="allow-btn" onclick="requestCameraPermission()">Разрешить</button>
+        <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
+    </div>
+    
+    <div id="gyroPermission" class="hidden">
+        <h2>🎮 Доступ к датчикам</h2>
+        <p>Для реалистичного эффекта AR нужен доступ к акселерометру и гироскопу вашего устройства.</p>
+        <button class="allow-btn" onclick="requestGyroPermission()">Разрешить</button>
+        <button class="deny-btn" onclick="skipGyroPermission()">Пропустить</button>
+    </div>        function denyCameraPermission() {
             permissionDialog.classList.add('hidden');
         }
 
@@ -10,20 +22,37 @@ function denyCameraPermission() {
                         if (permissionState === 'granted') {
                             hasDeviceOrientation = true;
                             window.addEventListener('deviceorientation', handleDeviceOrientation);
+                            console.log('✅ Гироскоп включён');
+                        } else {
+                            console.log('❌ Доступ к гироскопу запрещён');
                         }
                     })
-                    .catch(console.error);
+                    .catch(error => {
+                        console.error('Ошибка запроса гироскопа:', error);
+                    });
             } else if (typeof DeviceOrientationEvent !== 'undefined') {
                 // Android и старые iOS
                 hasDeviceOrientation = true;
                 window.addEventListener('deviceorientation', handleDeviceOrientation);
+                console.log('✅ Гироскоп включён (Android)');
+            } else {
+                console.log('❌ Ваше устройство не поддерживает гироскоп');
             }
         }
 
         function handleDeviceOrientation(event) {
-            alpha = event.alpha || 0; // Z axis rotation
-            beta = event.beta || 0;   // X axis rotation (pitch)
-            gamma = event.gamma || 0; // Y axis rotation (roll)
+            alpha = event.alpha || 0;
+            beta = event.beta || 0;
+            gamma = event.gamma || 0;
+        }
+
+        function requestGyroPermission() {
+            initDeviceOrientation();
+            document.getElementById('gyroPermission').classList.add('hidden');
+        }
+
+        function skipGyroPermission() {
+            document.getElementById('gyroPermission').classList.add('hidden');
         }<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -377,6 +406,10 @@ function denyCameraPermission() {
                             document.getElementById('floatingText').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
                             document.getElementById('socialLinks').classList.add('visible');
+                            
+                            // Показываем запрос доступа к гироскопу
+                            document.getElementById('gyroPermission').classList.remove('hidden');
+                            
                             arActive = true;
                         }, 100);
                         
@@ -643,8 +676,6 @@ function denyCameraPermission() {
     </script>
 </body>
 </html>
-
-
 
 
 
