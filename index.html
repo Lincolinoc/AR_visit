@@ -56,35 +56,7 @@
         }
         
         #textBox {
-            position: fixed;
-            bottom: clamp(200px, 25vh, 350px);
-            right: clamp(10px, 2vw, 30px);
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #4CAF50;
-            border-radius: 8px;
-            padding: clamp(12px, 2vw, 20px);
-            z-index: 100;
-            min-width: clamp(200px, 80vw, 320px);
-        }
-        
-        #textBox input {
-            width: 100%;
-            padding: clamp(8px, 1.5vw, 12px);
-            border: 1px solid #4CAF50;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: clamp(12px, 2vw, 16px);
-            margin-bottom: 10px;
-        }
-        
-        #textBox input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        #textBox small {
-            color: #888;
-            font-size: clamp(10px, 1.5vw, 13px);
+            display: none;
         }
         
         #videoPlayer {
@@ -92,7 +64,7 @@
             bottom: auto;
             top: clamp(100px, 10vh, 200px);
             left: clamp(10px, 3vw, 30px);
-            width: clamp(200px, 30vw, 320px);
+            width: clamp(140px, 18vw, 240px);
             height: auto;
             aspect-ratio: 16 / 9;
             background: rgba(0, 0, 0, 0.3);
@@ -168,13 +140,13 @@
 
         #buttonsContainer {
             position: fixed;
-            bottom: clamp(100px, 15vh, 250px);
+            bottom: clamp(80px, 12vh, 180px);
             left: 50%;
             transform: translateX(-50%);
             display: none;
-            gap: clamp(10px, 2vw, 20px);
+            gap: clamp(8px, 1.5vw, 15px);
             z-index: 100;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
             max-width: 95vw;
             padding: 0 10px;
@@ -188,16 +160,17 @@
             background: rgba(76, 175, 80, 0.9);
             border: 2px solid #4CAF50;
             color: white;
-            padding: clamp(10px, 2vw, 16px) clamp(14px, 3vw, 24px);
+            padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 20px);
             border-radius: 8px;
             cursor: pointer;
-            font-size: clamp(12px, 3vw, 16px);
+            font-size: clamp(11px, 2.2vw, 14px);
             display: flex;
             align-items: center;
-            gap: clamp(6px, 1vw, 10px);
+            gap: clamp(5px, 1vw, 8px);
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .action-btn:hover {
@@ -246,15 +219,31 @@
             color: #ff6b6b;
         }
         
+        #socialLinks {
+            position: fixed;
+            bottom: clamp(35px, 6vh, 80px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: clamp(10px, 2vw, 20px);
+            z-index: 100;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #socialLinks.visible {
+            display: flex;
+        }
+
         .social-btn {
-            width: 50px;
-            height: 50px;
+            width: clamp(40px, 8vw, 60px);
+            height: clamp(40px, 8vw, 60px);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            font-size: 24px;
+            font-size: clamp(18px, 3vw, 28px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             transition: box-shadow 0.3s;
             transform-style: preserve-3d;
@@ -265,28 +254,13 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
         }
         
-        .facebook {
-            background: #1877F2;
-            color: white;
-        }
-        
-        .instagram {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .twitter {
-            background: #1DA1F2;
-            color: white;
-        }
-        
-        .youtube {
-            background: #FF0000;
-            color: white;
-        }
-        
         .telegram {
             background: #0088cc;
+            color: white;
+        }
+        
+        .vkontakte {
+            background: #0077ff;
             color: white;
         }
         
@@ -428,11 +402,8 @@
     </div>
     
     <div id="socialLinks">
-        <a href="https://facebook.com" target="_blank" class="social-btn facebook" title="Facebook">f</a>
-        <a href="https://instagram.com" target="_blank" class="social-btn instagram" title="Instagram">📷</a>
-        <a href="https://twitter.com" target="_blank" class="social-btn twitter" title="Twitter">𝕏</a>
-        <a href="https://youtube.com" target="_blank" class="social-btn youtube" title="YouTube">▶</a>
         <a href="https://t.me" target="_blank" class="social-btn telegram" title="Telegram">✈</a>
+        <a href="https://vk.com" target="_blank" class="social-btn vkontakte" title="ВКонтакте">V</a>
     </div>
     
     <button id="startBtn" onclick="toggleAR()" disabled>Загрузка...</button>
@@ -488,6 +459,7 @@
                             document.getElementById('videoPlayer').classList.add('visible');
                             document.getElementById('floatingText').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
+                            document.getElementById('socialLinks').classList.add('visible');
                         }, 100);
                         
                         initScene();
@@ -853,6 +825,7 @@
     </script>
 </body>
 </html>
+
 
 
 
