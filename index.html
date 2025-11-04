@@ -1,30 +1,4 @@
-function denyCameraPermission() {
-            permissionDialog.classList.add('hidden');
-        }
-
-        function initDeviceOrientation() {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            hasDeviceOrientation = true;
-                            window.addEventListener('deviceorientation', handleDeviceOrientation);
-                        }
-                    })
-                    .catch(console.error);
-            } else if (typeof DeviceOrientationEvent !== 'undefined') {
-                // Android и старые iOS
-                hasDeviceOrientation = true;
-                window.addEventListener('deviceorientation', handleDeviceOrientation);
-            }
-        }
-
-        function handleDeviceOrientation(event) {
-            alpha = event.alpha || 0; // Z axis rotation
-            beta = event.beta || 0;   // X axis rotation (pitch)
-            gamma = event.gamma || 0; // Y axis rotation (roll)
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -381,7 +355,6 @@ function denyCameraPermission() {
                         }, 100);
                         
                         initScene();
-                        initDeviceOrientation();
                     };
                 })
                 .catch(err => console.error('Ошибка доступа к камере:', err));
@@ -486,24 +459,9 @@ function denyCameraPermission() {
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // Основные модели вращаются
                 cubes.forEach((obj) => {
                     obj.rotation.y += 0.008;
                 });
-                
-                // Применяем наклон камеры на основе гироскопа
-                if (hasDeviceOrientation) {
-                    const maxTilt = 0.1; // Максимальный наклон в радианах
-                    
-                    // Нормализуем beta и gamma в диапазон -maxTilt до maxTilt
-                    const tiltX = (beta / 90) * maxTilt;
-                    const tiltY = (gamma / 90) * maxTilt;
-                    
-                    cubes.forEach((obj) => {
-                        obj.rotation.x += (tiltX - obj.rotation.x) * 0.05;
-                        obj.rotation.z += (tiltY - obj.rotation.z) * 0.05;
-                    });
-                }
             }
             
             renderer.render(scene, camera);
@@ -645,6 +603,7 @@ function denyCameraPermission() {
     </script>
 </body>
 </html>
+
 
 
 
