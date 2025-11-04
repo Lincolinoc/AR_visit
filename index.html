@@ -386,6 +386,8 @@
         let mouse = new THREE.Vector2();
         let brain = null;
         let hourglass = null;
+        let socialModels = {};
+        let socialScenes = {};
         
         const statusEl = document.getElementById('status');
         const startBtn = document.getElementById('startBtn');
@@ -690,6 +692,7 @@
         window.addEventListener('load', () => {
             checkARSupport();
             loadPreviewVideo();
+            loadSocialModels();
         });
         
         let isPreviewPlaying = false;
@@ -704,7 +707,59 @@
             });
         }
 
-        function toggleVideoPlayer(event) {
+        function loadSocialModels() {
+            const socialModelsData = [
+                { id: 'socialModel1', name: 'telegram', url: 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/telegram.glb' },
+                { id: 'socialModel2', name: 'vkontakte', url: 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/vkontakte.glb' }
+            ];
+
+            socialModelsData.forEach(modelData => {
+                const canvas = document.getElementById(modelData.id);
+                if (!canvas) return;
+
+                const width = canvas.clientWidth || 60;
+                const height = canvas.clientHeight || 60;
+                canvas.width = width * window.devicePixelRatio;
+                canvas.height = height * window.devicePixelRatio;
+
+                const socialScene = new THREE.Scene();
+                socialScene.background = new THREE.Color(0x000000);
+                socialScene.background.transparent = true;
+
+                const socialCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+                socialCamera.position.z = 1.5;
+
+                const socialRenderer = new THREE.WebGLRenderer({ 
+                    canvas, 
+                    alpha: true, 
+                    antialias: true 
+                });
+                socialRenderer.setSize(width, height);
+                socialRenderer.setPixelRatio(window.devicePixelRatio);
+                socialRenderer.setClearColor(0x000000, 0);
+
+                const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+                socialScene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+                directionalLight.position.set(5, 5, 5);
+                socialScene.add(directionalLight);
+
+                const loader = new THREE.GLTFLoader();
+                loader.load(modelData.url, (gltf) => {
+                    console.log('✅ Загружена модель:', modelData.name);
+                    const model = gltf.scene;
+                    model.position.set(0, 0, 0);
+                    model.scale.set(0.8, 0.8, 0.8);
+                    socialScene.add(model);
+                    
+                    socialModels[modelData.name] = model;
+                    socialScenes[modelData.name] = { scene: socialScene, renderer: socialRenderer, camera: socialCamera };
+                }, undefined, (error) => {
+                    console.error('❌ Ошибка загрузки', modelData.name, ':', error);
+                });
+            });
+        }
             event.stopPropagation();
             event.preventDefault();
             const previewVid = document.getElementById('previewVideo');
@@ -779,14 +834,28 @@
         setInterval(() => {
             if (arActive) {
                 rotationY += 3;
+                
+                // Вращаем основные 3D модели
                 document.querySelectorAll('.social-btn').forEach(btn => {
                     btn.style.transform = 'rotateY(' + rotationY + 'deg)';
+                });
+
+                // Вращаем социальные модели
+                Object.keys(socialModels).forEach(name => {
+                    if (socialModels[name]) {
+                        socialModels[name].rotation.y += 0.008;
+                        const socialData = socialScenes[name];
+                        if (socialData) {
+                            socialData.renderer.render(socialData.scene, socialData.camera);
+                        }
+                    }
                 });
             }
         }, 30);
     </script>
 </body>
 </html>
+
 
 
 
