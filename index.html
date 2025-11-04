@@ -44,15 +44,7 @@
         }
         
         #info {
-            position: fixed;
-            top: clamp(10px, 2vh, 30px);
-            left: clamp(10px, 2vw, 30px);
-            color: white;
-            font-size: clamp(12px, 2.5vw, 16px);
-            background: rgba(0, 0, 0, 0.6);
-            padding: clamp(12px, 2vw, 20px);
-            border-radius: 8px;
-            z-index: 100;
+            display: none;
         }
         
         #textBox {
@@ -265,28 +257,7 @@
         }
         
         #startBtn {
-            position: fixed;
-            bottom: clamp(15px, 3vh, 50px);
-            left: 50%;
-            transform: translateX(-50%);
-            padding: clamp(10px, 2vw, 16px) clamp(30px, 5vw, 50px);
-            font-size: clamp(13px, 2.5vw, 18px);
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 100;
-            transition: background 0.3s;
-        }
-        
-        #startBtn:hover:not(:disabled) {
-            background: #45a049;
-        }
-        
-        #startBtn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
+            display: none;
         }
         
         #permission {
@@ -460,6 +431,9 @@
                             document.getElementById('floatingText').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
                             document.getElementById('socialLinks').classList.add('visible');
+                            
+                            // Сразу запускаем AR
+                            arActive = true;
                         }, 100);
                         
                         initScene();
@@ -523,14 +497,7 @@
         }
 
         function createObjects() {
-            const isMobile = window.innerWidth < 768;
-            const scale = isMobile ? 0.15 : 0.25;
-            
-            const geomSphere = new THREE.SphereGeometry(scale, 32, 32);
-            const matSphere = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
-            sphere = new THREE.Mesh(geomSphere, matSphere);
-            sphere.position.set(0, 0.6, 0);
-            scene.add(sphere);
+            // Шар удалён
         }
 
         function getAdaptiveScale() {
@@ -825,6 +792,7 @@
     </script>
 </body>
 </html>
+
 
 
 
