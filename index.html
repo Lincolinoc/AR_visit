@@ -22,37 +22,20 @@
                         if (permissionState === 'granted') {
                             hasDeviceOrientation = true;
                             window.addEventListener('deviceorientation', handleDeviceOrientation);
-                            console.log('✅ Гироскоп включён');
-                        } else {
-                            console.log('❌ Доступ к гироскопу запрещён');
                         }
                     })
-                    .catch(error => {
-                        console.error('Ошибка запроса гироскопа:', error);
-                    });
+                    .catch(console.error);
             } else if (typeof DeviceOrientationEvent !== 'undefined') {
                 // Android и старые iOS
                 hasDeviceOrientation = true;
                 window.addEventListener('deviceorientation', handleDeviceOrientation);
-                console.log('✅ Гироскоп включён (Android)');
-            } else {
-                console.log('❌ Ваше устройство не поддерживает гироскоп');
             }
         }
 
         function handleDeviceOrientation(event) {
-            alpha = event.alpha || 0;
-            beta = event.beta || 0;
-            gamma = event.gamma || 0;
-        }
-
-        function requestGyroPermission() {
-            initDeviceOrientation();
-            document.getElementById('gyroPermission').classList.add('hidden');
-        }
-
-        function skipGyroPermission() {
-            document.getElementById('gyroPermission').classList.add('hidden');
+            alpha = event.alpha || 0; // Z axis rotation
+            beta = event.beta || 0;   // X axis rotation (pitch)
+            gamma = event.gamma || 0; // Y axis rotation (roll)
         }<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -406,10 +389,6 @@
                             document.getElementById('floatingText').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
                             document.getElementById('socialLinks').classList.add('visible');
-                            
-                            // Показываем запрос доступа к гироскопу
-                            document.getElementById('gyroPermission').classList.remove('hidden');
-                            
                             arActive = true;
                         }, 100);
                         
@@ -676,9 +655,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
