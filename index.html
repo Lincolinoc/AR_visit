@@ -485,22 +485,34 @@ function animate() {
     requestAnimationFrame(animate);
     
     if (arActive && isDeviceOrientationSupported) {
-        // Получаем углы ориентации
+        // Получаем углы ориентации устройства
         const alpha = deviceOrientation.alpha;
-        const beta = deviceOrientation.beta - Math.PI / 2; // Корректируем для вертикального положения
+        const beta = deviceOrientation.beta;
         const gamma = deviceOrientation.gamma;
         
-        // Создаём правильную ориентацию камеры
-        // Используем порядок YXZ для корректного преобразования углов устройства
-        camera.rotation.set(beta, alpha, -gamma, 'YXZ');
+        // Вычисляем позицию камеры на основе углов ориентации
+        // Камера будет двигаться по сфере вокруг моделей
+        const radius = cameraDistance;
         
-        // Камера остаётся на фиксированном расстоянии
-        camera.position.set(0, 0, cameraDistance);
+        // Конвертируем beta (наклон вперед-назад) и gamma (наклон влево-вправо)
+        // в сферические координаты
+        const phi = THREE.MathUtils.degToRad(90 - (beta || 0)); // вертикальный угол
+        const theta = THREE.MathUtils.degToRad(gamma || 0); // горизонтальный угол
+        
+        // Вычисляем позицию камеры в декартовых координатах
+        camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
+        camera.position.y = radius * Math.cos(phi);
+        camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+        
+        // Камера всегда смотрит на центр (где находятся модели)
+        camera.lookAt(0, 0, 0);
+        
+        // Корректируем ориентацию камеры с учётом alpha (поворот устройства)
+        camera.rotation.z = THREE.MathUtils.degToRad(-(alpha || 0));
     }
     
     renderer.render(scene, camera);
 }
-
         function onWindowResize() {
             const newWidth = window.innerWidth;
             const newHeight = window.innerHeight;
@@ -635,6 +647,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
