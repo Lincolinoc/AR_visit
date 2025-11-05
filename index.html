@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D AR Visualization</title>
+    <title>3D AR Visualization v1.0.1</title>
     <style>
         * {
             margin: 0;
@@ -485,26 +485,17 @@ function animate() {
     requestAnimationFrame(animate);
     
     if (arActive) {
-        // Позиционируем камеру на основе ориентации устройства с использованием кватернионов
+        // Позиционируем камеру на основе ориентации устройства
         if (isDeviceOrientationSupported) {
-            const alpha = THREE.MathUtils.degToRad(deviceOrientation.alpha);
-            const beta = THREE.MathUtils.degToRad(deviceOrientation.beta);
-            const gamma = THREE.MathUtils.degToRad(deviceOrientation.gamma);
+            const alpha = deviceOrientation.alpha;
+            const beta = deviceOrientation.beta;
+            const gamma = deviceOrientation.gamma;
             
-            // Используем кватернионы для избежания gimbal lock
-            const quat = new THREE.Quaternion();
-            quat.setFromEuler(new THREE.Euler(beta, alpha, -gamma, 'YXZ'));
+            // Простое преобразование - камера вращается вокруг моделей
+            camera.position.x = cameraDistance * Math.sin(gamma);
+            camera.position.y = cameraDistance * Math.sin(beta);
+            camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
             
-            // Инвертируем кватернион
-            quat.conjugate();
-            
-            // Применяем поворот к вектору направления (вперед)
-            const direction = new THREE.Vector3(0, 0, 1);
-            direction.applyQuaternion(quat);
-            direction.normalize();
-            direction.multiplyScalar(cameraDistance);
-            
-            camera.position.copy(direction);
             camera.lookAt(0, 0, 0);
         }
         
@@ -651,6 +642,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
