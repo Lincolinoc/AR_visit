@@ -479,21 +479,21 @@
                 }
             );
         }
-
-        function animate() {
+        
+function animate() {
     requestAnimationFrame(animate);
     
     if (arActive) {
         // Позиционируем камеру на основе ориентации устройства
         if (isDeviceOrientationSupported) {
             const alpha = deviceOrientation.alpha; // Z axis rotation (0-360)
-            const beta = deviceOrientation.beta;   // X axis rotation (-180 to 180, 0 = прямо)
+            const beta = -deviceOrientation.beta;  // X axis rotation (-180 to 180, 0 = прямо) - инвертируем
             const gamma = deviceOrientation.gamma; // Y axis rotation (-90 to 90)
             
             // Правильное преобразование углов Эйлера в позицию камеры
             // Модели смотрят в направлении камеры
             camera.position.x = cameraDistance * Math.sin(gamma);
-            camera.position.y = cameraDistance * Math.sin(beta);
+            camera.position.y = -cameraDistance * Math.sin(beta);
             camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
             
             // Камера всегда смотрит в центр сцены
@@ -643,6 +643,7 @@
     </script>
 </body>
 </html>
+
 
 
 
