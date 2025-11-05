@@ -481,31 +481,33 @@
         }
 
         function animate() {
-            requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
+    
+    if (arActive) {
+        // Позиционируем камеру на основе ориентации устройства
+        if (isDeviceOrientationSupported) {
+            const alpha = deviceOrientation.alpha; // Z axis rotation (0-360)
+            const beta = deviceOrientation.beta;   // X axis rotation (-180 to 180, 0 = прямо)
+            const gamma = deviceOrientation.gamma; // Y axis rotation (-90 to 90)
             
-            if (arActive) {
-                // Позиционируем камеру на основе ориентации устройства
-                if (isDeviceOrientationSupported) {
-                    const beta = deviceOrientation.beta;
-                    const gamma = deviceOrientation.gamma;
-                    
-                    // Вычисляем позицию камеры вокруг центра
-                    camera.position.x = cameraDistance * Math.sin(gamma);
-                    camera.position.y = -cameraDistance * Math.sin(beta);
-                    camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
-                    
-                    // Камера всегда смотрит в центр сцены
-                    camera.lookAt(0, 0, 0);
-                }
-                
-                // Модели НЕ вращаются по оси Y
-                cubes.forEach((obj) => {
-                    // Просто не вращаем - они остаются статичными
-                });
-            }
+            // Правильное преобразование углов Эйлера в позицию камеры
+            // Модели смотрят в направлении камеры
+            camera.position.x = cameraDistance * Math.sin(gamma);
+            camera.position.y = cameraDistance * Math.sin(beta);
+            camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
             
-            renderer.render(scene, camera);
+            // Камера всегда смотрит в центр сцены
+            camera.lookAt(0, 0, 0);
         }
+        
+        // Модели остаются статичными
+        cubes.forEach((obj) => {
+            // Просто не вращаем
+        });
+    }
+    
+    renderer.render(scene, camera);
+}
 
         function onWindowResize() {
             const newWidth = window.innerWidth;
@@ -641,5 +643,6 @@
     </script>
 </body>
 </html>
+
 
 
