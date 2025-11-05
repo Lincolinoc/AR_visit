@@ -486,20 +486,13 @@
             if (arActive) {
                 // Позиционируем камеру на основе ориентации устройства
                 if (isDeviceOrientationSupported) {
-                    const alpha = deviceOrientation.alpha;
                     const beta = deviceOrientation.beta;
                     const gamma = deviceOrientation.gamma;
                     
                     // Вычисляем позицию камеры вокруг центра
-                    // Используем правильный порядок углов Эйлера для deviceorientation
-                    const cosBeta = Math.cos(beta);
-                    const sinBeta = Math.sin(beta);
-                    const cosGamma = Math.cos(gamma);
-                    const sinGamma = Math.sin(gamma);
-                    
-                    camera.position.x = cameraDistance * sinGamma * cosBeta;
-                    camera.position.y = -cameraDistance * Math.cos(beta);
-                    camera.position.z = cameraDistance * cosGamma * cosBeta;
+                    camera.position.x = cameraDistance * Math.sin(gamma);
+                    camera.position.y = -cameraDistance * Math.sin(beta);
+                    camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
                     
                     // Камера всегда смотрит в центр сцены
                     camera.lookAt(0, 0, 0);
