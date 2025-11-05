@@ -1,42 +1,4 @@
-<div id="permission">
-        <h2>📱 Доступ к камере</h2>
-        <p>Это приложение использует вашу камеру для отображения 3D моделей в дополненной реальности.</p>
-        <button class="allow-btn" onclick="requestCameraPermission()">Разрешить</button>
-        <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
-    </div>
-    
-    <div id="gyroPermission" class="hidden">
-        <h2>🎮 Доступ к датчикам</h2>
-        <p>Для реалистичного эффекта AR нужен доступ к акселерометру и гироскопу вашего устройства.</p>
-        <button class="allow-btn" onclick="requestGyroPermission()">Разрешить</button>
-        <button class="deny-btn" onclick="skipGyroPermission()">Пропустить</button>
-    </div>        function denyCameraPermission() {
-            permissionDialog.classList.add('hidden');
-        }
-
-        function initDeviceOrientation() {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            hasDeviceOrientation = true;
-                            window.addEventListener('deviceorientation', handleDeviceOrientation);
-                        }
-                    })
-                    .catch(console.error);
-            } else if (typeof DeviceOrientationEvent !== 'undefined') {
-                // Android и старые iOS
-                hasDeviceOrientation = true;
-                window.addEventListener('deviceorientation', handleDeviceOrientation);
-            }
-        }
-
-        function handleDeviceOrientation(event) {
-            alpha = event.alpha || 0; // Z axis rotation
-            beta = event.beta || 0;   // X axis rotation (pitch)
-            gamma = event.gamma || 0; // Y axis rotation (roll)
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -356,10 +318,6 @@
         const permissionDialog = document.getElementById('permission');
         const videoBgEl = document.getElementById('videoBg');
         let arActive = false;
-        
-        // Переменные для гироскопа
-        let alpha = 0, beta = 0, gamma = 0;
-        let hasDeviceOrientation = false;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -393,7 +351,6 @@
                         }, 100);
                         
                         initScene();
-                        initDeviceOrientation();
                     };
                 })
                 .catch(err => console.error('Ошибка доступа к камере:', err));
@@ -499,20 +456,7 @@
             
             if (arActive) {
                 cubes.forEach((obj) => {
-                    // Основное вращение по Y
-                    obj.rotation.order = 'YXZ'; // Важно! Устанавливаем порядок вращений
                     obj.rotation.y += 0.008;
-                    
-                    // Применяем наклон камеры на основе гироскопа
-                    if (hasDeviceOrientation) {
-                        const maxTilt = 0.15;
-                        const tiltX = (beta / 90) * maxTilt;
-                        const tiltZ = (gamma / 90) * maxTilt;
-                        
-                        // Плавная интерполяция наклонов
-                        obj.rotation.x += (tiltX - obj.rotation.x) * 0.08;
-                        obj.rotation.z += (tiltZ - obj.rotation.z) * 0.08;
-                    }
                 });
             }
             
@@ -644,6 +588,7 @@
                 Object.keys(socialModels).forEach(name => {
                     if (socialModels[name]) {
                         socialModels[name].rotation.y += 0.008;
+                        socialModels[name].rotation.z += 0.002;
                         const socialData = socialScenes[name];
                         if (socialData) {
                             socialData.renderer.render(socialData.scene, socialData.camera);
