@@ -1,4 +1,25 @@
-<!DOCTYPE html>
+window.addEventListener('load', () => {
+            checkARSupport();
+            const previewVid = document.getElementById('previewVideo');
+            previewVid.src = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
+            loadSocialModels();
+        });
+
+        function resetOrientation() {
+            orientationCalibrated = false;
+            initialOrientation = { alpha: 0, beta: 0, gamma: 0 };
+            camera.rotation.set(0, 0, 0);
+            console.log('🔄 Ориентация сброшена');
+        }
+
+        // Анимация социальных моделей    <div id="socialLinks">
+        <canvas id="socialModel1" class="social-model" title="Telegram"></canvas>
+        <canvas id="socialModel2" class="social-model" title="ВКонтакте"></canvas>
+    </div>
+
+    <button id="resetButton" onclick="resetOrientation()">🔄 Калибровка</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -261,6 +282,31 @@
         .hidden {
             display: none !important;
         }
+
+        #resetButton {
+            position: fixed;
+            bottom: clamp(10px, 2vh, 20px);
+            right: clamp(10px, 2vw, 20px);
+            background: rgba(100, 100, 100, 0.8);
+            border: 2px solid #666;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 150;
+            display: none;
+            transition: all 0.3s;
+        }
+
+        #resetButton.visible {
+            display: block;
+        }
+
+        #resetButton:hover {
+            background: rgba(100, 100, 100, 1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -274,6 +320,10 @@
         <p>Это приложение использует вашу камеру и датчики ориентации для отображения 3D моделей в дополненной реальности.</p>
         <button class="allow-btn" onclick="requestPermissions()">Разрешить</button>
         <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+            <strong>iOS Safari:</strong> Откройте Настройки → Safari → Приватность и безопасность → Датчики движения<br>
+            <strong>Android Chrome:</strong> Откройте Параметры сайта (⚙️) → Разрешения → Датчик ориентации
+        </p>
     </div>
     
     <div id="floatingText">
@@ -304,8 +354,6 @@
         <canvas id="socialModel1" class="social-model" title="Telegram"></canvas>
         <canvas id="socialModel2" class="social-model" title="ВКонтакте"></canvas>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
         let scene, camera, renderer;
@@ -321,7 +369,9 @@
         
         // Переменные для отслеживания ориентации
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
+        let initialOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
+        let orientationCalibrated = false;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -382,6 +432,15 @@
             deviceOrientation.alpha = THREE.MathUtils.degToRad(event.alpha || 0);
             deviceOrientation.beta = THREE.MathUtils.degToRad(event.beta || 0);
             deviceOrientation.gamma = THREE.MathUtils.degToRad(event.gamma || 0);
+            
+            // Калибровка при первом событии
+            if (!orientationCalibrated) {
+                initialOrientation.alpha = deviceOrientation.alpha;
+                initialOrientation.beta = deviceOrientation.beta;
+                initialOrientation.gamma = deviceOrientation.gamma;
+                orientationCalibrated = true;
+                console.log('✅ Ориентация откалибрована');
+            }
         }
 
         function denyCameraPermission() {
@@ -440,11 +499,12 @@
                 brainPath, 
                 function(gltf) {
                     brain = gltf.scene;
-                    brain.position.set(0, 0, 0);
+                    brain.position.set(-0.6, 0.1, 0);
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     scene.add(brain);
                     cubes.push(brain);
+                    console.log('✅ Мозг загружен на позицию:', brain.position);
                 }, 
                 undefined,
                 function(error) {
@@ -467,11 +527,12 @@
                 function(gltf) {
                     hourglass = gltf.scene;
                     const hourglassScale = getAdaptiveScale();
-                    const posX = window.innerWidth < 768 ? 0.8 : 1.5;
-                    hourglass.position.set(posX, 0, 0);
+                    const posX = window.innerWidth < 768 ? 1.2 : 1.8;
+                    hourglass.position.set(posX, 0.1, 0);
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
                     scene.add(hourglass);
                     cubes.push(hourglass);
+                    console.log('✅ Часы загружены на позицию:', hourglass.position);
                 }, 
                 undefined,
                 function(error) {
@@ -484,16 +545,25 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // Применяем ориентацию устройства к камере
-                if (isDeviceOrientationSupported) {
+                // Применяем ориентацию устройства к камере (только если включена поддержка)
+                if (isDeviceOrientationSupported && orientationCalibrated) {
+                    // Вычисляем относительные углы от начальной позиции
+                    const relAlpha = deviceOrientation.alpha - initialOrientation.alpha;
+                    const relBeta = deviceOrientation.beta - initialOrientation.beta;
+                    const relGamma = deviceOrientation.gamma - initialOrientation.gamma;
+                    
+                    // Применяем с плавным переходом
+                    const smoothing = 0.15;
                     camera.rotation.order = 'YXZ';
-                    camera.rotation.y = deviceOrientation.alpha;
-                    camera.rotation.x = deviceOrientation.beta;
-                    camera.rotation.z = deviceOrientation.gamma;
+                    camera.rotation.y += (relAlpha - camera.rotation.y) * smoothing;
+                    camera.rotation.x += (relBeta - camera.rotation.x) * smoothing;
+                    camera.rotation.z += (relGamma - camera.rotation.z) * smoothing;
                 }
                 
                 cubes.forEach((obj) => {
-                    obj.rotation.y += 0.008;
+                    if (obj) {
+                        obj.rotation.y += 0.008;
+                    }
                 });
             }
             
@@ -615,8 +685,6 @@
             previewVid.src = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
             loadSocialModels();
         });
-
-        // Анимация социальных моделей
         setInterval(() => {
             if (arActive) {
                 Object.keys(socialModels).forEach(name => {
