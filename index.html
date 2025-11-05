@@ -322,6 +322,7 @@
         // Переменные для отслеживания ориентации
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
+        const cameraDistance = 3;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -396,7 +397,7 @@
             const screenHeight = window.innerHeight;
             
             camera = new THREE.PerspectiveCamera(75, screenWidth / screenHeight, 0.1, 1000);
-            camera.position.z = 3;
+            camera.position.set(0, 0, cameraDistance);
             
             renderer = new THREE.WebGLRenderer({ 
                 canvas, 
@@ -483,14 +484,22 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // Применяем ориентацию устройства к камере
+                // Позиционируем камеру на основе ориентации устройства
+                // Модели остаются в центре, а камера их осматривает
                 if (isDeviceOrientationSupported) {
-                    camera.rotation.order = 'YXZ';
-                    camera.rotation.y = deviceOrientation.alpha;
-                    camera.rotation.x = deviceOrientation.beta;
-                    camera.rotation.z = deviceOrientation.gamma;
+                    const beta = deviceOrientation.beta;
+                    const gamma = deviceOrientation.gamma;
+                    
+                    // Вычисляем позицию камеры вокруг центра
+                    camera.position.x = cameraDistance * Math.sin(gamma);
+                    camera.position.y = -cameraDistance * Math.sin(beta);
+                    camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
+                    
+                    // Камера всегда смотрит в центр сцены
+                    camera.lookAt(0, 0, 0);
                 }
                 
+                // Модели вращаются в центре
                 cubes.forEach((obj) => {
                     obj.rotation.y += 0.008;
                 });
