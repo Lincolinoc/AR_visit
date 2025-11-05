@@ -322,6 +322,7 @@
         // Переменные для отслеживания ориентации
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
+        const cameraDistance = 3;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -396,7 +397,7 @@
             const screenHeight = window.innerHeight;
             
             camera = new THREE.PerspectiveCamera(75, screenWidth / screenHeight, 0.1, 1000);
-            camera.position.z = 3;
+            camera.position.set(0, 0, cameraDistance);
             
             renderer = new THREE.WebGLRenderer({ 
                 canvas, 
@@ -443,7 +444,7 @@
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     scene.add(brain);
-                    cubes.push(brain);
+                    cubes.push({model: brain, rotateY: false});
                 }, 
                 undefined,
                 function(error) {
@@ -470,7 +471,7 @@
                     hourglass.position.set(posX, 0, 0);
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
                     scene.add(hourglass);
-                    cubes.push(hourglass);
+                    cubes.push({model: hourglass, rotateY: false});
                 }, 
                 undefined,
                 function(error) {
@@ -483,18 +484,23 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // ВАРИАНТ 1: Модели всегда перед вами
-                // Ротируем ТОЛЬКО камеру на основе ориентации устройства
+                // Позиционируем камеру на основе ориентации устройства
                 if (isDeviceOrientationSupported) {
-                    camera.rotation.order = 'YXZ';
-                    camera.rotation.y = deviceOrientation.alpha;
-                    camera.rotation.x = deviceOrientation.beta;
-                    camera.rotation.z = deviceOrientation.gamma;
+                    const beta = deviceOrientation.beta;
+                    const gamma = deviceOrientation.gamma;
+                    
+                    // Вычисляем позицию камеры вокруг центра
+                    camera.position.x = cameraDistance * Math.sin(gamma);
+                    camera.position.y = -cameraDistance * Math.sin(beta);
+                    camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
+                    
+                    // Камера всегда смотрит в центр сцены
+                    camera.lookAt(0, 0, 0);
                 }
                 
-                // Модели вращаются на месте
+                // Модели НЕ вращаются по оси Y
                 cubes.forEach((obj) => {
-                    obj.rotation.y += 0.008;
+                    // Просто не вращаем - они остаются статичными
                 });
             }
             
@@ -617,13 +623,13 @@
             loadSocialModels();
         });
 
-        // Анимация социальных моделей
+        // Анимация социальных моделей - ТОЛЬКО по оси Y
         setInterval(() => {
             if (arActive) {
                 Object.keys(socialModels).forEach(name => {
                     if (socialModels[name]) {
+                        // Вращаем ТОЛЬКО по оси Y
                         socialModels[name].rotation.y += 0.008;
-                        socialModels[name].rotation.z += 0.002;
                         const socialData = socialScenes[name];
                         if (socialData) {
                             socialData.renderer.render(socialData.scene, socialData.camera);
@@ -635,4 +641,3 @@
     </script>
 </body>
 </html>
-
