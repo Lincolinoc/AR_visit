@@ -499,7 +499,7 @@ function animate() {
             const direction = new THREE.Vector3(0, 0, 1);
             direction.applyQuaternion(quat);
             direction.normalize();
-            direction.multiplyScalar(cameraDistance);
+            direction.multiplyScalar(-cameraDistance); // Инвертируем направление
             
             camera.position.copy(direction);
             camera.lookAt(0, 0, 0);
@@ -648,6 +648,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
