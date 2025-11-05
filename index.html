@@ -485,19 +485,23 @@ function animate() {
     requestAnimationFrame(animate);
     
     if (arActive) {
-        // Позиционируем камеру на основе ориентации устройства
+        // Позиционируем камеру на основе ориентации устройства с использованием кватернионов
         if (isDeviceOrientationSupported) {
-            const alpha = deviceOrientation.alpha; // Z axis rotation (0-360)
-            const beta = -deviceOrientation.beta;  // X axis rotation (-180 to 180, 0 = прямо) - инвертируем
-            const gamma = deviceOrientation.gamma; // Y axis rotation (-90 to 90)
+            const alpha = THREE.MathUtils.degToRad(deviceOrientation.alpha);
+            const beta = THREE.MathUtils.degToRad(deviceOrientation.beta);
+            const gamma = THREE.MathUtils.degToRad(deviceOrientation.gamma);
             
-            // Правильное преобразование углов Эйлера в позицию камеры
-            // Модели смотрят в направлении камеры
-            camera.position.x = cameraDistance * Math.sin(gamma);
-            camera.position.y = -cameraDistance * Math.sin(beta);
-            camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
+            // Используем кватернионы для избежания gimbal lock
+            const quat = new THREE.Quaternion();
+            quat.setFromEuler(new THREE.Euler(beta, alpha, -gamma, 'YXZ'));
             
-            // Камера всегда смотрит в центр сцены
+            // Применяем поворот к вектору направления (вперед)
+            const direction = new THREE.Vector3(0, 0, 1);
+            direction.applyQuaternion(quat);
+            direction.normalize();
+            direction.multiplyScalar(cameraDistance);
+            
+            camera.position.copy(direction);
             camera.lookAt(0, 0, 0);
         }
         
@@ -644,6 +648,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
