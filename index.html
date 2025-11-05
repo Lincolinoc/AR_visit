@@ -440,12 +440,11 @@
                 brainPath, 
                 function(gltf) {
                     brain = gltf.scene;
-                    brain.position.set(-0.6, 0.1, 0);
+                    brain.position.set(0, 0, 0);
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     scene.add(brain);
                     cubes.push(brain);
-                    console.log('✅ Мозг загружен на позицию:', brain.position);
                 }, 
                 undefined,
                 function(error) {
@@ -468,12 +467,11 @@
                 function(gltf) {
                     hourglass = gltf.scene;
                     const hourglassScale = getAdaptiveScale();
-                    const posX = window.innerWidth < 768 ? 1.2 : 1.8;
-                    hourglass.position.set(posX, 0.1, 0);
+                    const posX = window.innerWidth < 768 ? 0.8 : 1.5;
+                    hourglass.position.set(posX, 0, 0);
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
                     scene.add(hourglass);
                     cubes.push(hourglass);
-                    console.log('✅ Часы загружены на позицию:', hourglass.position);
                 }, 
                 undefined,
                 function(error) {
@@ -486,20 +484,16 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
-                // Применяем ориентацию устройства к камере (только если включена поддержка)
+                // Применяем ориентацию устройства к камере
                 if (isDeviceOrientationSupported) {
-                    // Небольшое сглаживание для стабильности
-                    const smoothing = 0.1;
                     camera.rotation.order = 'YXZ';
-                    camera.rotation.y += (deviceOrientation.alpha - camera.rotation.y) * smoothing;
-                    camera.rotation.x += (deviceOrientation.beta - camera.rotation.x) * smoothing;
-                    camera.rotation.z += (deviceOrientation.gamma - camera.rotation.z) * smoothing;
+                    camera.rotation.y = deviceOrientation.alpha;
+                    camera.rotation.x = deviceOrientation.beta;
+                    camera.rotation.z = deviceOrientation.gamma;
                 }
                 
                 cubes.forEach((obj) => {
-                    if (obj) {
-                        obj.rotation.y += 0.008;
-                    }
+                    obj.rotation.y += 0.008;
                 });
             }
             
