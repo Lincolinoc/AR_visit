@@ -484,25 +484,18 @@
 function animate() {
     requestAnimationFrame(animate);
     
-    if (arActive) {
-        // Позиционируем камеру на основе ориентации устройства
-        if (isDeviceOrientationSupported) {
-            const alpha = deviceOrientation.alpha;
-            const beta = deviceOrientation.beta;
-            const gamma = deviceOrientation.gamma;
-            
-            // Простое преобразование - камера вращается вокруг моделей
-            camera.position.x = cameraDistance * Math.sin(gamma);
-            camera.position.y = cameraDistance * Math.sin(beta);
-            camera.position.z = cameraDistance * Math.cos(gamma) * Math.cos(beta);
-            
-            camera.lookAt(0, 0, 0);
-        }
+    if (arActive && isDeviceOrientationSupported) {
+        // Получаем углы ориентации
+        const alpha = deviceOrientation.alpha;
+        const beta = deviceOrientation.beta - Math.PI / 2; // Корректируем для вертикального положения
+        const gamma = deviceOrientation.gamma;
         
-        // Модели остаются статичными
-        cubes.forEach((obj) => {
-            // Просто не вращаем
-        });
+        // Создаём правильную ориентацию камеры
+        // Используем порядок YXZ для корректного преобразования углов устройства
+        camera.rotation.set(beta, alpha, -gamma, 'YXZ');
+        
+        // Камера остаётся на фиксированном расстоянии
+        camera.position.set(0, 0, cameraDistance);
     }
     
     renderer.render(scene, camera);
@@ -642,6 +635,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
