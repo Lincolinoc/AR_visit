@@ -495,11 +495,14 @@ function animate() {
             const quat = new THREE.Quaternion();
             quat.setFromEuler(new THREE.Euler(beta, alpha, -gamma, 'YXZ'));
             
+            // Инвертируем кватернион
+            quat.conjugate();
+            
             // Применяем поворот к вектору направления (вперед)
             const direction = new THREE.Vector3(0, 0, 1);
             direction.applyQuaternion(quat);
             direction.normalize();
-            direction.multiplyScalar(-cameraDistance); // Инвертируем направление
+            direction.multiplyScalar(cameraDistance);
             
             camera.position.copy(direction);
             camera.lookAt(0, 0, 0);
@@ -648,6 +651,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
