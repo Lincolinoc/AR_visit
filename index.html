@@ -270,9 +270,9 @@
     </div>
     
     <div id="permission">
-        <h2>📱 Доступ к камере</h2>
-        <p>Это приложение использует вашу камеру для отображения 3D моделей в дополненной реальности.</p>
-        <button class="allow-btn" onclick="requestCameraPermission()">Разрешить</button>
+        <h2>📱 Доступ к камере и датчикам</h2>
+        <p>Это приложение использует вашу камеру и датчики ориентации для отображения 3D моделей в дополненной реальности.</p>
+        <button class="allow-btn" onclick="requestPermissions()">Разрешить</button>
         <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
     </div>
     
@@ -318,6 +318,10 @@
         const permissionDialog = document.getElementById('permission');
         const videoBgEl = document.getElementById('videoBg');
         let arActive = false;
+        
+        // Переменные для отслеживания ориентации
+        let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
+        let isDeviceOrientationSupported = false;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -326,34 +330,58 @@
             }
         }
 
-        function requestCameraPermission() {
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            })
-                .then(stream => {
-                    videoBgEl.srcObject = stream;
-                    videoBgEl.style.display = 'block';
-                    
-                    videoBgEl.onloadedmetadata = () => {
-                        videoBgEl.play();
-                        permissionDialog.classList.add('hidden');
-                        
-                        setTimeout(() => {
-                            document.getElementById('videoPlayer').classList.add('visible');
-                            document.getElementById('floatingText').classList.add('visible');
-                            document.getElementById('buttonsContainer').classList.add('visible');
-                            document.getElementById('socialLinks').classList.add('visible');
-                            arActive = true;
-                        }, 100);
-                        
-                        initScene();
-                    };
+        async function requestPermissions() {
+            try {
+                // Запрашиваем разрешение на ориентацию (iOS 13+)
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        isDeviceOrientationSupported = true;
+                        window.addEventListener('deviceorientation', handleDeviceOrientation);
+                    }
+                } else {
+                    // Для Android и старых iOS
+                    isDeviceOrientationSupported = true;
+                    window.addEventListener('deviceorientation', handleDeviceOrientation);
+                }
+
+                // Запрашиваем доступ к камере
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
                 })
-                .catch(err => console.error('Ошибка доступа к камере:', err));
+                    .then(stream => {
+                        videoBgEl.srcObject = stream;
+                        videoBgEl.style.display = 'block';
+                        
+                        videoBgEl.onloadedmetadata = () => {
+                            videoBgEl.play();
+                            permissionDialog.classList.add('hidden');
+                            
+                            setTimeout(() => {
+                                document.getElementById('videoPlayer').classList.add('visible');
+                                document.getElementById('floatingText').classList.add('visible');
+                                document.getElementById('buttonsContainer').classList.add('visible');
+                                document.getElementById('socialLinks').classList.add('visible');
+                                arActive = true;
+                            }, 100);
+                            
+                            initScene();
+                        };
+                    })
+                    .catch(err => console.error('Ошибка доступа к камере:', err));
+            } catch (error) {
+                console.error('Ошибка при запросе разрешений:', error);
+            }
+        }
+
+        function handleDeviceOrientation(event) {
+            deviceOrientation.alpha = THREE.MathUtils.degToRad(event.alpha || 0);
+            deviceOrientation.beta = THREE.MathUtils.degToRad(event.beta || 0);
+            deviceOrientation.gamma = THREE.MathUtils.degToRad(event.gamma || 0);
         }
 
         function denyCameraPermission() {
@@ -455,6 +483,14 @@
             requestAnimationFrame(animate);
             
             if (arActive) {
+                // Применяем ориентацию устройства к камере
+                if (isDeviceOrientationSupported) {
+                    camera.rotation.order = 'YXZ';
+                    camera.rotation.y = deviceOrientation.alpha;
+                    camera.rotation.x = deviceOrientation.beta;
+                    camera.rotation.z = deviceOrientation.gamma;
+                }
+                
                 cubes.forEach((obj) => {
                     obj.rotation.y += 0.008;
                 });
@@ -491,7 +527,6 @@
                 const canvas = document.getElementById(modelData.id);
                 if (!canvas) return;
 
-                // Увеличиваем размер canvas и добавляем padding
                 const baseSize = 90;
                 const scale = window.devicePixelRatio;
                 const canvasSize = baseSize * scale;
@@ -527,16 +562,14 @@
                 loader.load(modelData.url, (gltf) => {
                     const model = gltf.scene;
                     
-                    // Центрируем модель
                     const box = new THREE.Box3().setFromObject(model);
                     const center = box.getCenter(new THREE.Vector3());
                     model.position.sub(center);
                     
-                    // Масштабируем с учётом размера
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 1.4 / maxDim;
-                    model.scale.multiplyScalar(scale);
+                    const scl = 1.4 / maxDim;
+                    model.scale.multiplyScalar(scl);
                     
                     socialScene.add(model);
                     socialModels[modelData.name] = model;
