@@ -498,7 +498,7 @@
                     const sinGamma = Math.sin(gamma);
                     
                     camera.position.x = cameraDistance * sinGamma * cosBeta;
-                    camera.position.y = -cameraDistance * sinBeta;
+                    camera.position.y = cameraDistance * sinBeta;
                     camera.position.z = cameraDistance * cosGamma * cosBeta;
                     
                     // Камера всегда смотрит в центр сцены
@@ -648,3 +648,4 @@
     </script>
 </body>
 </html>
+
