@@ -486,34 +486,45 @@ function animate() {
     requestAnimationFrame(animate);
     
     if (arActive && isDeviceOrientationSupported) {
-        // Получаем углы ориентации устройства
-        const alpha = deviceOrientation.alpha;
-        const beta = deviceOrientation.beta;
-        const gamma = deviceOrientation.gamma;
+        // Получаем углы ориентации устройства (в градусах)
+        let alpha = deviceOrientation.alpha;
+        let beta = deviceOrientation.beta;
+        let gamma = deviceOrientation.gamma;
         
-        // Вычисляем позицию камеры на основе углов ориентации
-        // Камера будет двигаться по сфере вокруг моделей
+        // Обновляем отладочную информацию
+        document.getElementById('alphaVal').textContent = alpha.toFixed(1);
+        document.getElementById('betaVal').textContent = beta.toFixed(1);
+        document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+        
+        // Преобразуем в радианы с усилением чувствительности
+        const sensitivity = 2.0; // Множитель для усиления движения
+        const alphaRad = THREE.MathUtils.degToRad(alpha);
+        const betaRad = THREE.MathUtils.degToRad(beta) * sensitivity;
+        const gammaRad = THREE.MathUtils.degToRad(gamma) * sensitivity;
+        
+        // Вычисляем позицию камеры на сфере
+        // Beta: наклон вперёд-назад (-180 до 180)
+        // Gamma: наклон влево-вправо (-90 до 90)
+        
         const radius = cameraDistance;
         
-        // Конвертируем beta (наклон вперед-назад) и gamma (наклон влево-вправо)
-        // в сферические координаты
-        const phi = THREE.MathUtils.degToRad(90 - (beta || 0)); // вертикальный угол
-        const theta = THREE.MathUtils.degToRad(gamma || 0); // горизонтальный угол
+        // Простая сферическая система координат
+        camera.position.x = radius * Math.sin(gammaRad);
+        camera.position.y = radius * Math.sin(betaRad);
+        camera.position.z = radius * Math.cos(gammaRad) * Math.cos(betaRad);
         
-        // Вычисляем позицию камеры в декартовых координатах
-        camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
-        camera.position.y = radius * Math.cos(phi);
-        camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+        // Обновляем отладочную информацию о позиции камеры
+        document.getElementById('camPos').textContent = 
+            `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
         
-        // Камера всегда смотрит на центр (где находятся модели)
+        // Камера всегда направлена на центр
         camera.lookAt(0, 0, 0);
         
-        // Корректируем ориентацию камеры с учётом alpha (поворот устройства)
-        camera.rotation.z = THREE.MathUtils.degToRad(-(alpha || 0));
+        // Применяем rotation.z для компенсации поворота устройства вокруг своей оси
+        camera.rotation.z = -alphaRad;
     }
     
     renderer.render(scene, camera);
-}
         function onWindowResize() {
             const newWidth = window.innerWidth;
             const newHeight = window.innerHeight;
@@ -648,6 +659,7 @@ function animate() {
     </script>
 </body>
 </html>
+
 
 
 
