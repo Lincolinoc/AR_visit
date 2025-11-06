@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D AR Visualization v1.0.1</title>
+    <title>3D AR Visualization v1.0.2</title>
     <style>
         * {
             margin: 0;
@@ -62,6 +62,24 @@
         }
 
         #floatingText.visible {
+            display: block;
+        }
+        
+        #debugInfo {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #4CAF50;
+            padding: 10px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 200;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        #debugInfo.visible {
             display: block;
         }
 
@@ -280,6 +298,13 @@
         <span class="text-line">Улучшаю память • Концентрацию • Планирование</span>
         <span class="text-line highlight">+30% эффективность уже через 3 недели</span>
     </div>
+    
+    <div id="debugInfo">
+        <div>Alpha: <span id="alphaVal">0</span>°</div>
+        <div>Beta: <span id="betaVal">0</span>°</div>
+        <div>Gamma: <span id="gammaVal">0</span>°</div>
+        <div>Camera: <span id="camPos">0,0,0</span></div>
+    </div>
 
     <div id="buttonsContainer">
         <button class="action-btn" onclick="alert('📅 Записаться на консультацию')">
@@ -319,7 +344,6 @@
         const videoBgEl = document.getElementById('videoBg');
         let arActive = false;
         
-        // Переменные для отслеживания ориентации
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
         const cameraDistance = 3;
@@ -333,7 +357,6 @@
 
         async function requestPermissions() {
             try {
-                // Запрашиваем разрешение на ориентацию (iOS 13+)
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                     const permission = await DeviceOrientationEvent.requestPermission();
                     if (permission === 'granted') {
@@ -341,12 +364,10 @@
                         window.addEventListener('deviceorientation', handleDeviceOrientation);
                     }
                 } else {
-                    // Для Android и старых iOS
                     isDeviceOrientationSupported = true;
                     window.addEventListener('deviceorientation', handleDeviceOrientation);
                 }
 
-                // Запрашиваем доступ к камере
                 navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: 'environment',
@@ -354,35 +375,36 @@
                         height: { ideal: 720 }
                     } 
                 })
-                    .then(stream => {
-                        videoBgEl.srcObject = stream;
-                        videoBgEl.style.display = 'block';
+                .then(stream => {
+                    videoBgEl.srcObject = stream;
+                    videoBgEl.style.display = 'block';
+                    
+                    videoBgEl.onloadedmetadata = () => {
+                        videoBgEl.play();
+                        permissionDialog.classList.add('hidden');
                         
-                        videoBgEl.onloadedmetadata = () => {
-                            videoBgEl.play();
-                            permissionDialog.classList.add('hidden');
-                            
-                            setTimeout(() => {
-                                document.getElementById('videoPlayer').classList.add('visible');
-                                document.getElementById('floatingText').classList.add('visible');
-                                document.getElementById('buttonsContainer').classList.add('visible');
-                                document.getElementById('socialLinks').classList.add('visible');
-                                arActive = true;
-                            }, 100);
-                            
-                            initScene();
-                        };
-                    })
-                    .catch(err => console.error('Ошибка доступа к камере:', err));
+                        setTimeout(() => {
+                            document.getElementById('videoPlayer').classList.add('visible');
+                            document.getElementById('floatingText').classList.add('visible');
+                            document.getElementById('buttonsContainer').classList.add('visible');
+                            document.getElementById('socialLinks').classList.add('visible');
+                            document.getElementById('debugInfo').classList.add('visible');
+                            arActive = true;
+                        }, 100);
+                        
+                        initScene();
+                    };
+                })
+                .catch(err => console.error('Ошибка доступа к камере:', err));
             } catch (error) {
                 console.error('Ошибка при запросе разрешений:', error);
             }
         }
 
         function handleDeviceOrientation(event) {
-            deviceOrientation.alpha = THREE.MathUtils.degToRad(event.alpha || 0);
-            deviceOrientation.beta = THREE.MathUtils.degToRad(event.beta || 0);
-            deviceOrientation.gamma = THREE.MathUtils.degToRad(event.gamma || 0);
+            deviceOrientation.alpha = event.alpha || 0;
+            deviceOrientation.beta = event.beta || 0;
+            deviceOrientation.gamma = event.gamma || 0;
         }
 
         function denyCameraPermission() {
@@ -443,6 +465,7 @@
                     brain.position.set(0, 0, 0);
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
+                    brain.rotation.x = Math.PI / 2;
                     scene.add(brain);
                     cubes.push({model: brain, rotateY: false});
                 }, 
@@ -470,6 +493,7 @@
                     const posX = window.innerWidth < 768 ? 0.8 : 1.5;
                     hourglass.position.set(posX, 0, 0);
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
+                    hourglass.rotation.x = Math.PI / 2;
                     scene.add(hourglass);
                     cubes.push({model: hourglass, rotateY: false});
                 }, 
@@ -479,52 +503,40 @@
                 }
             );
         }
-        
 
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (arActive && isDeviceOrientationSupported) {
+                let alpha = deviceOrientation.alpha;
+                let beta = deviceOrientation.beta;
+                let gamma = deviceOrientation.gamma;
+                
+                document.getElementById('alphaVal').textContent = alpha.toFixed(1);
+                document.getElementById('betaVal').textContent = beta.toFixed(1);
+                document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+                
+                const sensitivity = 2.0;
+                const alphaRad = THREE.MathUtils.degToRad(alpha);
+                const betaRad = THREE.MathUtils.degToRad(beta) * sensitivity;
+                const gammaRad = THREE.MathUtils.degToRad(gamma) * sensitivity;
+                
+                const radius = cameraDistance;
+                
+                camera.position.x = radius * Math.sin(gammaRad);
+                camera.position.y = radius * Math.sin(betaRad);
+                camera.position.z = radius * Math.cos(gammaRad) * Math.cos(betaRad);
+                
+                document.getElementById('camPos').textContent = 
+                    `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
+                
+                camera.lookAt(0, 0, 0);
+                camera.rotation.z = -alphaRad;
+            }
+            
+            renderer.render(scene, camera);
+        }
 
-function animate() {
-    requestAnimationFrame(animate);
-    
-    if (arActive && isDeviceOrientationSupported) {
-        // Получаем углы ориентации устройства (в градусах)
-        let alpha = deviceOrientation.alpha;
-        let beta = deviceOrientation.beta;
-        let gamma = deviceOrientation.gamma;
-        
-        // Обновляем отладочную информацию
-        document.getElementById('alphaVal').textContent = alpha.toFixed(1);
-        document.getElementById('betaVal').textContent = beta.toFixed(1);
-        document.getElementById('gammaVal').textContent = gamma.toFixed(1);
-        
-        // Преобразуем в радианы с усилением чувствительности
-        const sensitivity = 2.0; // Множитель для усиления движения
-        const alphaRad = THREE.MathUtils.degToRad(alpha);
-        const betaRad = THREE.MathUtils.degToRad(beta) * sensitivity;
-        const gammaRad = THREE.MathUtils.degToRad(gamma) * sensitivity;
-        
-        // Вычисляем позицию камеры на сфере
-        // Beta: наклон вперёд-назад (-180 до 180)
-        // Gamma: наклон влево-вправо (-90 до 90)
-        
-        const radius = cameraDistance;
-        
-        // Простая сферическая система координат
-        camera.position.x = radius * Math.sin(gammaRad);
-        camera.position.y = radius * Math.sin(betaRad);
-        camera.position.z = radius * Math.cos(gammaRad) * Math.cos(betaRad);
-        
-        // Обновляем отладочную информацию о позиции камеры
-        document.getElementById('camPos').textContent = 
-            `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
-        
-        // Камера всегда направлена на центр
-        camera.lookAt(0, 0, 0);
-        
-        // Применяем rotation.z для компенсации поворота устройства вокруг своей оси
-        camera.rotation.z = -alphaRad;
-    }
-    
-    renderer.render(scene, camera);
         function onWindowResize() {
             const newWidth = window.innerWidth;
             const newHeight = window.innerHeight;
@@ -641,12 +653,10 @@ function animate() {
             loadSocialModels();
         });
 
-        // Анимация социальных моделей - ТОЛЬКО по оси Y
         setInterval(() => {
             if (arActive) {
                 Object.keys(socialModels).forEach(name => {
                     if (socialModels[name]) {
-                        // Вращаем ТОЛЬКО по оси Y
                         socialModels[name].rotation.y += 0.008;
                         const socialData = socialScenes[name];
                         if (socialData) {
