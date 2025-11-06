@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D AR Visualization v1.0.2</title>
+    <title>3D AR Visualization v1.0.3</title>
     <style>
         * {
             margin: 0;
@@ -107,7 +107,7 @@
 
         #buttonsContainer {
             position: fixed;
-            bottom: clamp(80px, 12vh, 180px);
+            bottom: clamp(160px, 20vh, 240px);
             left: 50%;
             transform: translateX(-50%);
             display: none;
@@ -124,8 +124,8 @@
         }
 
         .action-btn {
-            background: rgba(76, 175, 80, 0.9);
-            border: 2px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid rgba(76, 175, 80, 0.6);
             color: white;
             padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 20px);
             border-radius: 8px;
@@ -138,10 +138,12 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             white-space: nowrap;
             flex-shrink: 0;
+            backdrop-filter: blur(10px);
         }
 
         .action-btn:hover {
-            background: rgba(76, 175, 80, 1);
+            background: rgba(76, 175, 80, 0.3);
+            border-color: rgba(76, 175, 80, 1);
             transform: scale(1.05);
             box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
         }
@@ -347,6 +349,7 @@
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
         const cameraDistance = 3;
+        let animationTime = 0;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -462,12 +465,15 @@
                 brainPath, 
                 function(gltf) {
                     brain = gltf.scene;
-                    brain.position.set(0, 0, 0);
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
-                    // brain.rotation.x = Math.PI / 2; // Убираем поворот
+                    
+                    // Размещаем мозг влево
+                    const posX = window.innerWidth < 768 ? -1.2 : -2.2;
+                    brain.position.set(posX, 0, 0);
+                    
                     scene.add(brain);
-                    cubes.push({model: brain, rotateY: false});
+                    cubes.push({model: brain, rotateY: false, type: 'brain'});
                 }, 
                 undefined,
                 function(error) {
@@ -490,12 +496,14 @@
                 function(gltf) {
                     hourglass = gltf.scene;
                     const hourglassScale = getAdaptiveScale();
-                    const posX = window.innerWidth < 768 ? 0.8 : 1.5;
+                    
+                    // Размещаем часы вправо
+                    const posX = window.innerWidth < 768 ? 1.2 : 2.2;
                     hourglass.position.set(posX, 0, 0);
+                    
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
-                    // hourglass.rotation.x = Math.PI / 2; // Убираем поворот
                     scene.add(hourglass);
-                    cubes.push({model: hourglass, rotateY: false});
+                    cubes.push({model: hourglass, rotateY: false, type: 'hourglass'});
                 }, 
                 undefined,
                 function(error) {
@@ -505,53 +513,55 @@
         }
 
         function animate() {
-    requestAnimationFrame(animate);
-    
-    if (arActive && isDeviceOrientationSupported) {
-        let alpha = deviceOrientation.alpha;
-        let beta = deviceOrientation.beta;
-        let gamma = deviceOrientation.gamma;
-        
-        document.getElementById('alphaVal').textContent = alpha.toFixed(1);
-        document.getElementById('betaVal').textContent = beta.toFixed(1);
-        document.getElementById('gammaVal').textContent = gamma.toFixed(1);
-        
-        // Преобразуем углы в радианы
-        const alphaRad = THREE.MathUtils.degToRad(alpha);
-        const betaRad = THREE.MathUtils.degToRad(beta);
-        const gammaRad = THREE.MathUtils.degToRad(gamma);
-        
-        // Используем кватернионы вместо прямого преобразования углов
-        // Это избегает проблемы gimbal lock
-        
-        // Создаём Euler с правильным порядком для device orientation
-        const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
-        
-        // Преобразуем в кватернион для стабильного вращения
-        const quaternion = new THREE.Quaternion();
-        quaternion.setFromEuler(euler);
-        
-        // Корректировка для портретной ориентации (поворот на -90° вокруг X)
-        const screenAdjustment = new THREE.Quaternion();
-        screenAdjustment.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-        quaternion.multiply(screenAdjustment);
-        
-        // Применяем кватернион к камере
-        camera.quaternion.copy(quaternion);
-        
-        // Камера смотрит из фиксированной точки
-        camera.position.set(0, 0, cameraDistance);
-        camera.position.applyQuaternion(quaternion.clone().invert());
-        
-        document.getElementById('camPos').textContent = 
-            `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
-        
-        // Камера смотрит на центр
-        camera.lookAt(0, 0, 0);
-    }
-    
-    renderer.render(scene, camera);
-}
+            requestAnimationFrame(animate);
+            animationTime += 0.016;
+            
+            // Анимация подъема-опускания для моделей
+            const floatAmount = Math.sin(animationTime * 0.8) * 0.15;
+            
+            cubes.forEach(obj => {
+                if (obj.type === 'brain' && brain) {
+                    brain.position.y = floatAmount;
+                } else if (obj.type === 'hourglass' && hourglass) {
+                    hourglass.position.y = floatAmount;
+                }
+            });
+            
+            if (arActive && isDeviceOrientationSupported) {
+                let alpha = deviceOrientation.alpha;
+                let beta = deviceOrientation.beta;
+                let gamma = deviceOrientation.gamma;
+                
+                document.getElementById('alphaVal').textContent = alpha.toFixed(1);
+                document.getElementById('betaVal').textContent = beta.toFixed(1);
+                document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+                
+                const alphaRad = THREE.MathUtils.degToRad(alpha);
+                const betaRad = THREE.MathUtils.degToRad(beta);
+                const gammaRad = THREE.MathUtils.degToRad(gamma);
+                
+                const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
+                
+                const quaternion = new THREE.Quaternion();
+                quaternion.setFromEuler(euler);
+                
+                const screenAdjustment = new THREE.Quaternion();
+                screenAdjustment.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                quaternion.multiply(screenAdjustment);
+                
+                camera.quaternion.copy(quaternion);
+                
+                camera.position.set(0, 0, cameraDistance);
+                camera.position.applyQuaternion(quaternion.clone().invert());
+                
+                document.getElementById('camPos').textContent = 
+                    `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
+                
+                camera.lookAt(0, 0, 0);
+            }
+            
+            renderer.render(scene, camera);
+        }
 
         function onWindowResize() {
             const newWidth = window.innerWidth;
@@ -563,10 +573,12 @@
             const newScale = getAdaptiveScale();
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
+                const newPosX = newWidth < 768 ? -1.2 : -2.2;
+                brain.position.x = newPosX;
             }
             if (hourglass) {
                 hourglass.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? 0.8 : 1.5;
+                const newPosX = newWidth < 768 ? 1.2 : 2.2;
                 hourglass.position.x = newPosX;
             }
         }
@@ -685,6 +697,7 @@
     </script>
 </body>
 </html>
+
 
 
 
