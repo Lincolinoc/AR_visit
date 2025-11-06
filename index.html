@@ -465,7 +465,7 @@
                     brain.position.set(0, 0, 0);
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
-                    brain.rotation.x = Math.PI / 2;
+                    // brain.rotation.x = Math.PI / 2; // Убираем поворот
                     scene.add(brain);
                     cubes.push({model: brain, rotateY: false});
                 }, 
@@ -493,7 +493,7 @@
                     const posX = window.innerWidth < 768 ? 0.8 : 1.5;
                     hourglass.position.set(posX, 0, 0);
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
-                    hourglass.rotation.x = Math.PI / 2;
+                    // hourglass.rotation.x = Math.PI / 2; // Убираем поворот
                     scene.add(hourglass);
                     cubes.push({model: hourglass, rotateY: false});
                 }, 
@@ -505,37 +505,53 @@
         }
 
         function animate() {
-            requestAnimationFrame(animate);
-            
-            if (arActive && isDeviceOrientationSupported) {
-                let alpha = deviceOrientation.alpha;
-                let beta = deviceOrientation.beta;
-                let gamma = deviceOrientation.gamma;
-                
-                document.getElementById('alphaVal').textContent = alpha.toFixed(1);
-                document.getElementById('betaVal').textContent = beta.toFixed(1);
-                document.getElementById('gammaVal').textContent = gamma.toFixed(1);
-                
-                const sensitivity = 2.0;
-                const alphaRad = THREE.MathUtils.degToRad(alpha);
-                const betaRad = THREE.MathUtils.degToRad(beta) * sensitivity;
-                const gammaRad = THREE.MathUtils.degToRad(gamma) * sensitivity;
-                
-                const radius = cameraDistance;
-                
-                camera.position.x = radius * Math.sin(gammaRad);
-                camera.position.y = radius * Math.sin(betaRad);
-                camera.position.z = radius * Math.cos(gammaRad) * Math.cos(betaRad);
-                
-                document.getElementById('camPos').textContent = 
-                    `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
-                
-                camera.lookAt(0, 0, 0);
-                camera.rotation.z = -alphaRad;
-            }
-            
-            renderer.render(scene, camera);
-        }
+    requestAnimationFrame(animate);
+    
+    if (arActive && isDeviceOrientationSupported) {
+        let alpha = deviceOrientation.alpha;
+        let beta = deviceOrientation.beta;
+        let gamma = deviceOrientation.gamma;
+        
+        document.getElementById('alphaVal').textContent = alpha.toFixed(1);
+        document.getElementById('betaVal').textContent = beta.toFixed(1);
+        document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+        
+        // Преобразуем углы в радианы
+        const alphaRad = THREE.MathUtils.degToRad(alpha);
+        const betaRad = THREE.MathUtils.degToRad(beta);
+        const gammaRad = THREE.MathUtils.degToRad(gamma);
+        
+        // Используем кватернионы вместо прямого преобразования углов
+        // Это избегает проблемы gimbal lock
+        
+        // Создаём Euler с правильным порядком для device orientation
+        const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
+        
+        // Преобразуем в кватернион для стабильного вращения
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromEuler(euler);
+        
+        // Корректировка для портретной ориентации (поворот на -90° вокруг X)
+        const screenAdjustment = new THREE.Quaternion();
+        screenAdjustment.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+        quaternion.multiply(screenAdjustment);
+        
+        // Применяем кватернион к камере
+        camera.quaternion.copy(quaternion);
+        
+        // Камера смотрит из фиксированной точки
+        camera.position.set(0, 0, cameraDistance);
+        camera.position.applyQuaternion(quaternion.clone().invert());
+        
+        document.getElementById('camPos').textContent = 
+            `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
+        
+        // Камера смотрит на центр
+        camera.lookAt(0, 0, 0);
+    }
+    
+    renderer.render(scene, camera);
+}
 
         function onWindowResize() {
             const newWidth = window.innerWidth;
@@ -669,6 +685,7 @@
     </script>
 </body>
 </html>
+
 
 
 
