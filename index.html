@@ -1,4 +1,15 @@
-<!DOCTYPE html>
+let isPreviewPlaying = false;
+
+        // ИСПРАВЛЕНИЕ: Функция для обработки кликов по кнопкам без остановки видео
+        function handleButtonClick(message) {
+            // Сохраняем состояние видео перед alert
+            const wasPlaying = !videoBgEl.paused;
+            
+            alert(message);
+            
+            // Возобновляем видео после закрытия alert
+            if (wasPlaying && videoBgEl.paused) {
+                videoBgEl.play().catch(err<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -309,13 +320,13 @@
     </div>
 
     <div id="buttonsContainer">
-        <button class="action-btn" onclick="alert('📅 Записаться на консультацию')">
+        <button class="action-btn" onclick="handleButtonClick('📅 Записаться на консультацию')">
             📅 Записаться
         </button>
-        <button class="action-btn" onclick="alert('🎯 Mini-тест концентрации')">
+        <button class="action-btn" onclick="handleButtonClick('🎯 Mini-тест концентрации')">
             🎯 Mini-тест
         </button>
-        <button class="action-btn" onclick="alert('📘 Мои методы')">
+        <button class="action-btn" onclick="handleButtonClick('📘 Мои методы')">
             📘 Методы
         </button>
     </div>
@@ -465,8 +476,8 @@
         }
 
         function getAdaptiveScale() {
-            // УВЕЛИЧЕНО В 2 РАЗА: было 0.18/0.3, стало 0.36/0.6
-            return window.innerWidth < 768 ? 0.36 : 0.6;
+            // УВЕЛИЧЕНО ЕЩЁ В 1.8 РАЗА: было 0.36/0.6, стало 0.648/1.08
+            return window.innerWidth < 768 ? 0.648 : 1.08;
         }
 
         function loadBrainModel() {
@@ -485,8 +496,8 @@
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     
-                    // Мозг: чуть левее текста
-                    const posX = window.innerWidth < 768 ? -0.5 : -0.8;
+                    // Мозг: ближе к центру
+                    const posX = window.innerWidth < 768 ? -0.2 : -0.3;
                     brain.position.set(posX, 0, 0);
                     
                     // ИСПРАВЛЕНИЕ МАТЕРИАЛОВ для корректного отображения цвета
@@ -632,7 +643,7 @@
             const newScale = getAdaptiveScale();
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? -0.5 : -0.8;
+                const newPosX = newWidth < 768 ? -0.2 : -0.3;
                 brain.position.x = newPosX;
             }
             if (hourglass) {
@@ -719,6 +730,19 @@
 
         let isPreviewPlaying = false;
 
+        // ИСПРАВЛЕНИЕ: Функция для обработки кликов по кнопкам без остановки видео
+        function handleButtonClick(message) {
+            // Сохраняем состояние видео перед alert
+            const wasPlaying = !videoBgEl.paused;
+            
+            alert(message);
+            
+            // Возобновляем видео после закрытия alert
+            if (wasPlaying && videoBgEl.paused) {
+                videoBgEl.play().catch(err => console.log('Ошибка воспроизведения:', err));
+            }
+        }
+
         function toggleVideoPlayer(event) {
             event.stopPropagation();
             const previewVid = document.getElementById('previewVideo');
@@ -758,6 +782,7 @@
     </script>
 </body>
 </html>
+
 
 
 
