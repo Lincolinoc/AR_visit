@@ -485,7 +485,8 @@
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     
-                    const posX = window.innerWidth < 768 ? -1.2 : -2.2;
+                    // Мозг: чуть левее текста
+                    const posX = window.innerWidth < 768 ? -0.5 : -0.8;
                     brain.position.set(posX, 0, 0);
                     
                     // ИСПРАВЛЕНИЕ МАТЕРИАЛОВ для корректного отображения цвета
@@ -544,8 +545,11 @@
                     hourglass = gltf.scene;
                     const hourglassScale = getAdaptiveScale();
                     
-                    const posX = window.innerWidth < 768 ? 1.2 : 2.2;
-                    hourglass.position.set(posX, 0, 0);
+                    // Часы: правее видео (видео находится слева, так что часы смещаем вправо)
+                    const posX = window.innerWidth < 768 ? -1.5 : -2.5;
+                    // Поднимаем выше к уровню видео
+                    const posY = window.innerWidth < 768 ? 1.2 : 1.5;
+                    hourglass.position.set(posX, posY, 0);
                     
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
                     
@@ -628,13 +632,15 @@
             const newScale = getAdaptiveScale();
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? -1.2 : -2.2;
+                const newPosX = newWidth < 768 ? -0.5 : -0.8;
                 brain.position.x = newPosX;
             }
             if (hourglass) {
                 hourglass.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? 1.2 : 2.2;
+                const newPosX = newWidth < 768 ? -1.5 : -2.5;
+                const newPosY = newWidth < 768 ? 1.2 : 1.5;
                 hourglass.position.x = newPosX;
+                hourglass.position.y = newPosY;
             }
         }
 
@@ -752,6 +758,7 @@
     </script>
 </body>
 </html>
+
 
 
 
