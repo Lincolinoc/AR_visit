@@ -56,20 +56,23 @@ let isPreviewPlaying = false;
         
         #floatingText {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
+            top: clamp(120px, 12vh, 220px);
+            left: auto;
+            right: clamp(10px, 3vw, 30px);
+            transform: none;
+            text-align: left;
             color: white;
-            font-size: clamp(16px, 5vw, 28px);
+            font-size: clamp(14px, 3.5vw, 20px);
             font-weight: bold;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.8), 0 0 20px rgba(76, 175, 80, 0.4);
             z-index: 90;
             pointer-events: none;
-            animation: float 3s ease-in-out infinite;
-            line-height: 1.5;
             display: none;
-            padding: 0 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            max-width: clamp(200px, 25vw, 300px);
         }
 
         #floatingText.visible {
@@ -136,7 +139,7 @@ let isPreviewPlaying = false;
 
         .action-btn {
             background: rgba(76, 175, 80, 0.15);
-            border: 2px solid rgba(76, 175, 80, 0.6);
+            border: none;
             color: white;
             padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 20px);
             border-radius: 8px;
@@ -154,7 +157,6 @@ let isPreviewPlaying = false;
 
         .action-btn:hover {
             background: rgba(76, 175, 80, 0.3);
-            border-color: rgba(76, 175, 80, 1);
             transform: scale(1.05);
             box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
         }
@@ -199,6 +201,48 @@ let isPreviewPlaying = false;
             justify-content: center;
             width: 100%;
             flex-shrink: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #playButton {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 0, 0, 0.9);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        #playButton:hover {
+            background: rgba(255, 0, 0, 1);
+            transform: scale(1.1);
+        }
+
+        #playButton::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 14px solid white;
+            border-top: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            margin-left: 3px;
+        }
+
+        #playButton.playing::after {
+            content: '';
+            border: none;
+            width: 14px;
+            height: 18px;
+            background: linear-gradient(to right, white 0%, white 35%, transparent 35%, transparent 65%, white 65%, white 100%);
+            margin-left: 0;
         }
 
         #socialLinks {
@@ -334,7 +378,7 @@ let isPreviewPlaying = false;
     <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
         <video id="previewVideo" muted></video>
         <div id="videoControls">
-            <div id="playButton">▶️</div>
+            <div id="playButton"></div>
         </div>
     </div>
     
@@ -496,9 +540,8 @@ let isPreviewPlaying = false;
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     
-                    // Мозг: ближе к центру
-                    const posX = window.innerWidth < 768 ? -0.2 : -0.3;
-                    brain.position.set(posX, 0, 0);
+                    // Мозг: точно по центру экрана
+                    brain.position.set(0, 0, 0);
                     
                     // ИСПРАВЛЕНИЕ МАТЕРИАЛОВ для корректного отображения цвета
                     brain.traverse((child) => {
@@ -643,8 +686,7 @@ let isPreviewPlaying = false;
             const newScale = getAdaptiveScale();
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? -0.2 : -0.3;
-                brain.position.x = newPosX;
+                brain.position.x = 0;
             }
             if (hourglass) {
                 hourglass.scale.set(newScale, newScale, newScale);
@@ -750,11 +792,11 @@ let isPreviewPlaying = false;
             
             if (isPreviewPlaying) {
                 previewVid.pause();
-                playBtn.style.opacity = '1';
+                playBtn.classList.remove('playing');
                 isPreviewPlaying = false;
             } else {
                 previewVid.play();
-                playBtn.style.opacity = '0';
+                playBtn.classList.add('playing');
                 isPreviewPlaying = true;
             }
         }
