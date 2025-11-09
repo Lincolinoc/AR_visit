@@ -334,12 +334,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
     <script>
         let scene, camera, renderer;
         let cubes = [];
         let brain = null;
-        let brain2 = null;
         let hourglass = null;
         let socialModels = {};
         let socialScenes = {};
@@ -443,7 +441,6 @@
             scene.add(directionalLight);
             
             loadBrainModel();
-            loadSecondBrainModel();
             loadHourglassModel();
             
             window.addEventListener('resize', onWindowResize);
@@ -451,105 +448,68 @@
             animate();
         }
 
-        function loadModelByFormat(filePath, type) {
-            const ext = filePath.split('.').pop().toLowerCase();
-            
-            if (ext === 'glb' || ext === 'gltf') {
-                loadGLTFModel(filePath, type);
-            } else if (ext === 'fbx') {
-                loadFBXModel(filePath, type);
-            } else {
-                console.error('❌ Неподдерживаемый формат:', ext);
-            }
-        }
-
-        function loadGLTFModel(filePath, type) {
-            if (!window.THREE.GLTFLoader) {
-                setTimeout(() => loadGLTFModel(filePath, type), 1000);
-                return;
-            }
-            
-            const loader = new THREE.GLTFLoader();
-            
-            loader.load(
-                filePath,
-                function(gltf) {
-                    const model = gltf.scene;
-                    const scale = getAdaptiveScale();
-                    
-                    model.scale.set(scale, scale, scale);
-                    
-                    if (type === 'brain') {
-                        brain = model;
-                        const posX = window.innerWidth < 768 ? -1.2 : -2.2;
-                        model.position.set(posX, 0, 0);
-                        cubes.push({model: brain, rotateY: false, type: 'brain'});
-                    } else if (type === 'hourglass') {
-                        hourglass = model;
-                        const posX = window.innerWidth < 768 ? 1.2 : 2.2;
-                        model.position.set(posX, 0, 0);
-                        cubes.push({model: hourglass, rotateY: false, type: 'hourglass'});
-                    }
-                    
-                    scene.add(model);
-                    console.log('✅ GLTF модель загружена:', type);
-                },
-                undefined,
-                function(error) {
-                    console.error('❌ Ошибка загрузки GLTF:', error);
-                }
-            );
-        }
-
-        function loadFBXModel(filePath, type) {
-            if (!window.THREE.FBXLoader) {
-                setTimeout(() => loadFBXModel(filePath, type), 1000);
-                return;
-            }
-            
-            const loader = new THREE.FBXLoader();
-            
-            loader.load(
-                filePath,
-                function(model) {
-                    const scale = getAdaptiveScale();
-                    
-                    model.scale.set(scale, scale, scale);
-                    
-                    if (type === 'brain') {
-                        brain = model;
-                        const posX = window.innerWidth < 768 ? -1.2 : -2.2;
-                        model.position.set(posX, 0, 0);
-                        cubes.push({model: brain, rotateY: false, type: 'brain'});
-                    } else if (type === 'hourglass') {
-                        hourglass = model;
-                        const posX = window.innerWidth < 768 ? 1.2 : 2.2;
-                        model.position.set(posX, 0, 0);
-                        cubes.push({model: hourglass, rotateY: false, type: 'hourglass'});
-                    }
-                    
-                    scene.add(model);
-                    console.log('✅ FBX модель загружена:', type);
-                },
-                undefined,
-                function(error) {
-                    console.error('❌ Ошибка загрузки FBX:', error);
-                }
-            );
-        }
-
         function getAdaptiveScale() {
             return window.innerWidth < 768 ? 0.18 : 0.3;
         }
 
         function loadBrainModel() {
+            if (!window.THREE.GLTFLoader) {
+                setTimeout(loadBrainModel, 1000);
+                return;
+            }
+            
+            const loader = new THREE.GLTFLoader();
             const brainPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/brain.glb';
-            loadModelByFormat(brainPath, 'brain');
+            
+            loader.load(
+                brainPath, 
+                function(gltf) {
+                    brain = gltf.scene;
+                    const brainScale = getAdaptiveScale();
+                    brain.scale.set(brainScale, brainScale, brainScale);
+                    
+                    // Размещаем мозг влево
+                    const posX = window.innerWidth < 768 ? -1.2 : -2.2;
+                    brain.position.set(posX, 0, 0);
+                    
+                    scene.add(brain);
+                    cubes.push({model: brain, rotateY: false, type: 'brain'});
+                }, 
+                undefined,
+                function(error) {
+                    console.error('❌ Ошибка загрузки мозга:', error);
+                }
+            );
         }
 
         function loadHourglassModel() {
+            if (!window.THREE.GLTFLoader) {
+                setTimeout(loadHourglassModel, 1000);
+                return;
+            }
+            
+            const loader = new THREE.GLTFLoader();
             const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
-            loadModelByFormat(hourglassPath, 'hourglass');
+            
+            loader.load(
+                hourglassPath, 
+                function(gltf) {
+                    hourglass = gltf.scene;
+                    const hourglassScale = getAdaptiveScale();
+                    
+                    // Размещаем часы вправо
+                    const posX = window.innerWidth < 768 ? 1.2 : 2.2;
+                    hourglass.position.set(posX, 0, 0);
+                    
+                    hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
+                    scene.add(hourglass);
+                    cubes.push({model: hourglass, rotateY: false, type: 'hourglass'});
+                }, 
+                undefined,
+                function(error) {
+                    console.error('❌ Ошибка загрузки часов:', error);
+                }
+            );
         }
 
         function animate() {
@@ -560,16 +520,10 @@
             const floatAmount = Math.sin(animationTime * 0.8) * 0.15;
             
             cubes.forEach(obj => {
-                if (obj.type === 'brain1' && brain) {
-                    const posX = window.innerWidth < 768 ? -1.5 : -2.5;
-                    const baseY = window.innerHeight < 600 ? -0.8 : -1.2;
-                    brain.position.set(posX, baseY + floatAmount, 0);
-                } else if (obj.type === 'brain2' && brain2) {
-                    const posX = window.innerWidth < 768 ? 1.5 : 2.5;
-                    const baseY = window.innerHeight < 600 ? -0.8 : -1.2;
-                    brain2.position.set(posX, baseY + floatAmount, 0);
+                if (obj.type === 'brain' && brain) {
+                    brain.position.y = floatAmount;
                 } else if (obj.type === 'hourglass' && hourglass) {
-                    hourglass.position.set(0, 1.2 + floatAmount, 0);
+                    hourglass.position.y = floatAmount;
                 }
             });
             
@@ -619,21 +573,13 @@
             const newScale = getAdaptiveScale();
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? -1.5 : -2.5;
-                const newPosY = newHeight < 600 ? -0.8 : -1.2;
+                const newPosX = newWidth < 768 ? -1.2 : -2.2;
                 brain.position.x = newPosX;
-                brain.position.y = newPosY;
-            }
-            if (brain2) {
-                brain2.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? 1.5 : 2.5;
-                const newPosY = newHeight < 600 ? -0.8 : -1.2;
-                brain2.position.x = newPosX;
-                brain2.position.y = newPosY;
             }
             if (hourglass) {
                 hourglass.scale.set(newScale, newScale, newScale);
-                hourglass.position.set(0, 1.2, 0);
+                const newPosX = newWidth < 768 ? 1.2 : 2.2;
+                hourglass.position.x = newPosX;
             }
         }
 
