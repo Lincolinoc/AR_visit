@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D AR Visualization v1.0.3</title>
+    <title>3D AR Visualization v1.0.4</title>
     <style>
         * {
             margin: 0;
@@ -433,12 +433,28 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setClearColor(0x000000, 0);
             
-            const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+            // УЛУЧШЕННОЕ ОСВЕЩЕНИЕ для правильного отображения PBR-материалов
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            // Основной направленный свет
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
             directionalLight.position.set(5, 5, 5);
             scene.add(directionalLight);
+            
+            // Дополнительные источники света для равномерного освещения
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            backLight.position.set(-5, -3, -5);
+            scene.add(backLight);
+            
+            const sideLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            sideLight.position.set(0, 5, -5);
+            scene.add(sideLight);
+            
+            // Точечный свет для дополнительного подсвечивания
+            const pointLight = new THREE.PointLight(0xffffff, 0.8, 100);
+            pointLight.position.set(0, 3, 3);
+            scene.add(pointLight);
             
             loadBrainModel();
             loadHourglassModel();
@@ -449,7 +465,8 @@
         }
 
         function getAdaptiveScale() {
-            return window.innerWidth < 768 ? 0.18 : 0.3;
+            // УВЕЛИЧЕНО В 2 РАЗА: было 0.18/0.3, стало 0.36/0.6
+            return window.innerWidth < 768 ? 0.36 : 0.6;
         }
 
         function loadBrainModel() {
@@ -468,12 +485,42 @@
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
                     
-                    // Размещаем мозг влево
                     const posX = window.innerWidth < 768 ? -1.2 : -2.2;
                     brain.position.set(posX, 0, 0);
                     
+                    // ИСПРАВЛЕНИЕ МАТЕРИАЛОВ для корректного отображения цвета
+                    brain.traverse((child) => {
+                        if (child.isMesh) {
+                            if (child.material) {
+                                // Включаем правильный рендеринг для PBR-материалов
+                                child.material.needsUpdate = true;
+                                
+                                // Если материал слишком темный, увеличиваем его яркость
+                                if (child.material.color) {
+                                    // Увеличиваем яркость цвета
+                                    child.material.emissive = child.material.color.clone().multiplyScalar(0.3);
+                                    child.material.emissiveIntensity = 0.5;
+                                }
+                                
+                                // Настройки для правильного отображения
+                                if (child.material.metalness !== undefined) {
+                                    child.material.metalness = Math.min(child.material.metalness, 0.3);
+                                }
+                                if (child.material.roughness !== undefined) {
+                                    child.material.roughness = Math.max(child.material.roughness, 0.4);
+                                }
+                                
+                                // Включаем приём теней
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                            }
+                        }
+                    });
+                    
                     scene.add(brain);
                     cubes.push({model: brain, rotateY: false, type: 'brain'});
+                    
+                    console.log('✅ Мозг загружен с улучшенными материалами');
                 }, 
                 undefined,
                 function(error) {
@@ -497,11 +544,20 @@
                     hourglass = gltf.scene;
                     const hourglassScale = getAdaptiveScale();
                     
-                    // Размещаем часы вправо
                     const posX = window.innerWidth < 768 ? 1.2 : 2.2;
                     hourglass.position.set(posX, 0, 0);
                     
                     hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
+                    
+                    // Применяем те же настройки освещения к часам
+                    hourglass.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            child.material.needsUpdate = true;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
                     scene.add(hourglass);
                     cubes.push({model: hourglass, rotateY: false, type: 'hourglass'});
                 }, 
@@ -516,7 +572,6 @@
             requestAnimationFrame(animate);
             animationTime += 0.016;
             
-            // Анимация подъема-опускания для моделей
             const floatAmount = Math.sin(animationTime * 0.8) * 0.15;
             
             cubes.forEach(obj => {
