@@ -582,15 +582,17 @@
             requestAnimationFrame(animate);
             animationTime += 0.016;
             
-            // Плавающая анимация (вверх-вниз на 0.1 единицы)
+            // Плавающая анимация для мозга
             const floatAmount = Math.sin(animationTime * 0.8) * 0.1;
             
             if (brain) {
-                // Мозг остаётся в центре X, но слегка движется по Y для эффекта
-                brain.position.x = 0;
-                brain.position.y = floatAmount;
-                brain.position.z = 0;
+                // Мозг всегда в центре и не движется относительно сцены
+                brain.position.set(0, floatAmount, 0);
             }
+            
+            // Камера статична и смотрит на мозг в центре
+            camera.position.set(0, 0, cameraDistance);
+            camera.lookAt(0, 0, 0);
             
             if (arActive && isDeviceOrientationSupported) {
                 let alpha = deviceOrientation.alpha;
@@ -601,28 +603,17 @@
                 document.getElementById('betaVal').textContent = beta.toFixed(1);
                 document.getElementById('gammaVal').textContent = gamma.toFixed(1);
                 
+                // Вращаем мозг вместо камеры, чтобы он оставался видимым в центре
                 const alphaRad = THREE.MathUtils.degToRad(alpha);
                 const betaRad = THREE.MathUtils.degToRad(beta);
                 const gammaRad = THREE.MathUtils.degToRad(gamma);
                 
+                // Применяем ориентацию к мозгу
                 const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
-                
-                const quaternion = new THREE.Quaternion();
-                quaternion.setFromEuler(euler);
-                
-                const screenAdjustment = new THREE.Quaternion();
-                screenAdjustment.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-                quaternion.multiply(screenAdjustment);
-                
-                camera.quaternion.copy(quaternion);
-                
-                camera.position.set(0, 0, cameraDistance);
-                camera.position.applyQuaternion(quaternion.clone().invert());
+                brain.quaternion.setFromEuler(euler);
                 
                 document.getElementById('camPos').textContent = 
                     `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
-                
-                camera.lookAt(0, 0, 0);
             }
             
             renderer.render(scene, camera);
@@ -765,9 +756,6 @@
     </script>
 </body>
 </html>
-
-
-
 
 
 
