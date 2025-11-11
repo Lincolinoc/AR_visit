@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D AR Visualization v1.0.4</title>
+    <title>3D AR Visualization v1.0.2</title>
     <style>
         * {
             margin: 0;
@@ -15,19 +15,12 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
             background: #000;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
         }
         
         #container {
-            position: fixed;
+            position: relative;
             width: 100vw;
             height: 100vh;
-            top: 0;
-            left: 0;
         }
         
         #videoBg {
@@ -38,7 +31,6 @@
             height: 100%;
             object-fit: cover;
             z-index: 1;
-            transform: none;
         }
         
         #canvas {
@@ -53,32 +45,20 @@
         
         #floatingText {
             position: fixed;
-            top: clamp(120px, 12vh, 220px);
-            left: auto;
-            right: clamp(10px, 3vw, 30px);
-            transform: none;
-            text-align: left;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
             color: white;
-            font-size: clamp(14px, 3.5vw, 20px);
+            font-size: clamp(16px, 5vw, 28px);
             font-weight: bold;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.8), 0 0 20px rgba(76, 175, 80, 0.4);
             z-index: 90;
             pointer-events: none;
+            animation: float 3s ease-in-out infinite;
+            line-height: 1.5;
             display: none;
-            padding: 15px;
-            background: transparent;
-            border-radius: 12px;
-            max-width: clamp(200px, 25vw, 300px);
-            animation: floatText 3s ease-in-out infinite;
-        }
-
-        @keyframes floatText {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-15px);
-            }
+            padding: 0 20px;
         }
 
         #floatingText.visible {
@@ -103,6 +83,15 @@
             display: block;
         }
 
+        @keyframes float {
+            0%, 100% {
+                transform: translate(-50%, -50%);
+            }
+            50% {
+                transform: translate(-50%, -60%);
+            }
+        }
+
         .text-line {
             display: block;
             font-size: clamp(16px, 4vw, 20px);
@@ -118,7 +107,7 @@
 
         #buttonsContainer {
             position: fixed;
-            bottom: clamp(160px, 20vh, 240px);
+            bottom: clamp(80px, 12vh, 180px);
             left: 50%;
             transform: translateX(-50%);
             display: none;
@@ -135,8 +124,8 @@
         }
 
         .action-btn {
-            background: rgba(76, 175, 80, 0.15);
-            border: none;
+            background: rgba(76, 175, 80, 0.9);
+            border: 2px solid #4CAF50;
             color: white;
             padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 20px);
             border-radius: 8px;
@@ -149,11 +138,10 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             white-space: nowrap;
             flex-shrink: 0;
-            backdrop-filter: blur(10px);
         }
 
         .action-btn:hover {
-            background: rgba(76, 175, 80, 0.3);
+            background: rgba(76, 175, 80, 1);
             transform: scale(1.05);
             box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
         }
@@ -198,55 +186,6 @@
             justify-content: center;
             width: 100%;
             flex-shrink: 0;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        #playButton {
-            width: clamp(48px, 10vw, 68px);
-            height: clamp(48px, 10vw, 68px);
-            background: rgba(0, 0, 0, 0.65);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: opacity 0.3s, transform 0.2s;
-            box-shadow: none;
-            position: relative;
-            backdrop-filter: blur(5px);
-            opacity: 1;
-        }
-
-        #playButton:hover {
-            background: rgba(0, 0, 0, 0.8);
-            transform: scale(1.1);
-        }
-
-        #playButton.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #playButton::after {
-            content: '';
-            width: 0;
-            height: 0;
-            border-left: clamp(14px, 3vw, 18px) solid white;
-            border-top: clamp(9px, 2vw, 11px) solid transparent;
-            border-bottom: clamp(9px, 2vw, 11px) solid transparent;
-            margin-left: clamp(2px, 0.5vw, 4px);
-        }
-
-        #playButton.playing::after {
-            content: '';
-            border: none;
-            width: clamp(14px, 3vw, 18px);
-            height: clamp(18px, 4vw, 22px);
-            background: linear-gradient(to right, white 0%, white 32%, transparent 32%, transparent 68%, white 68%, white 100%);
-            margin-left: 0;
         }
 
         #socialLinks {
@@ -368,13 +307,13 @@
     </div>
 
     <div id="buttonsContainer">
-        <button class="action-btn" onclick="handleButtonClick('📅 Записаться на консультацию')">
+        <button class="action-btn" onclick="alert('📅 Записаться на консультацию')">
             📅 Записаться
         </button>
-        <button class="action-btn" onclick="handleButtonClick('🎯 Mini-тест концентрации')">
+        <button class="action-btn" onclick="alert('🎯 Mini-тест концентрации')">
             🎯 Mini-тест
         </button>
-        <button class="action-btn" onclick="handleButtonClick('📘 Мои методы')">
+        <button class="action-btn" onclick="alert('📘 Мои методы')">
             📘 Методы
         </button>
     </div>
@@ -382,7 +321,7 @@
     <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
         <video id="previewVideo" muted></video>
         <div id="videoControls">
-            <div id="playButton"></div>
+            <div id="playButton">▶️</div>
         </div>
     </div>
     
@@ -408,7 +347,6 @@
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
         const cameraDistance = 3;
-        let animationTime = 0;
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -492,27 +430,15 @@
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setClearColor(0x000000, 0);
             
-            // Улучшенное освещение
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1);
             scene.add(ambientLight);
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
             directionalLight.position.set(5, 5, 5);
             scene.add(directionalLight);
             
-            const backLight = new THREE.DirectionalLight(0xffffff, 0.6);
-            backLight.position.set(-5, -3, -5);
-            scene.add(backLight);
-            
-            const sideLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            sideLight.position.set(0, 5, -5);
-            scene.add(sideLight);
-            
-            const pointLight = new THREE.PointLight(0xffffff, 0.8, 100);
-            pointLight.position.set(0, 3, 3);
-            scene.add(pointLight);
-            
             loadBrainModel();
+            loadHourglassModel();
             
             window.addEventListener('resize', onWindowResize);
             
@@ -520,8 +446,7 @@
         }
 
         function getAdaptiveScale() {
-            // Увеличиваем масштаб для лучшей видимости
-            return window.innerWidth < 768 ? 1.2 : 1.8;
+            return window.innerWidth < 768 ? 0.18 : 0.3;
         }
 
         function loadBrainModel() {
@@ -537,39 +462,11 @@
                 brainPath, 
                 function(gltf) {
                     brain = gltf.scene;
+                    brain.position.set(0, 0, 0);
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
-                    
-                    // Мозг: точно в центре экрана (без смещения)
-                    brain.position.set(0, 0, 0);
-                    
-                    brain.traverse((child) => {
-                        if (child.isMesh) {
-                            if (child.material) {
-                                child.material.needsUpdate = true;
-                                
-                                if (child.material.color) {
-                                    child.material.emissive = child.material.color.clone().multiplyScalar(0.3);
-                                    child.material.emissiveIntensity = 0.5;
-                                }
-                                
-                                if (child.material.metalness !== undefined) {
-                                    child.material.metalness = Math.min(child.material.metalness, 0.3);
-                                }
-                                if (child.material.roughness !== undefined) {
-                                    child.material.roughness = Math.max(child.material.roughness, 0.4);
-                                }
-                                
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                            }
-                        }
-                    });
-                    
                     scene.add(brain);
-                    cubes.push({model: brain, rotateY: false, type: 'brain'});
-                    
-                    console.log('✅ Мозг загружен');
+                    cubes.push({model: brain, rotateY: false});
                 }, 
                 undefined,
                 function(error) {
@@ -578,46 +475,81 @@
             );
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            animationTime += 0.016;
-            
-            // Плавающая анимация для мозга
-            const floatAmount = Math.sin(animationTime * 0.8) * 0.1;
-            
-            if (brain) {
-                // Мозг всегда в центре и не движется относительно сцены
-                brain.position.set(0, floatAmount, 0);
+        function loadHourglassModel() {
+            if (!window.THREE.GLTFLoader) {
+                setTimeout(loadHourglassModel, 1000);
+                return;
             }
             
-            // Камера статична и смотрит на мозг в центре
-            camera.position.set(0, 0, cameraDistance);
-            camera.lookAt(0, 0, 0);
+            const loader = new THREE.GLTFLoader();
+            const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
             
-            if (arActive && isDeviceOrientationSupported) {
-                let alpha = deviceOrientation.alpha;
-                let beta = deviceOrientation.beta;
-                let gamma = deviceOrientation.gamma;
-                
-                document.getElementById('alphaVal').textContent = alpha.toFixed(1);
-                document.getElementById('betaVal').textContent = beta.toFixed(1);
-                document.getElementById('gammaVal').textContent = gamma.toFixed(1);
-                
-                // Вращаем мозг вместо камеры, чтобы он оставался видимым в центре
-                const alphaRad = THREE.MathUtils.degToRad(alpha);
-                const betaRad = THREE.MathUtils.degToRad(beta);
-                const gammaRad = THREE.MathUtils.degToRad(gamma);
-                
-                // Применяем ориентацию к мозгу
-                const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
-                brain.quaternion.setFromEuler(euler);
-                
-                document.getElementById('camPos').textContent = 
-                    `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
-            }
-            
-            renderer.render(scene, camera);
+            loader.load(
+                hourglassPath, 
+                function(gltf) {
+                    hourglass = gltf.scene;
+                    const hourglassScale = getAdaptiveScale();
+                    const posX = window.innerWidth < 768 ? 0.8 : 1.5;
+                    hourglass.position.set(posX, 0, 0);
+                    hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
+                    scene.add(hourglass);
+                    cubes.push({model: hourglass, rotateY: false});
+                }, 
+                undefined,
+                function(error) {
+                    console.error('❌ Ошибка загрузки часов:', error);
+                }
+            );
         }
+
+        function animate() {
+    requestAnimationFrame(animate);
+    
+    if (arActive && isDeviceOrientationSupported) {
+        let alpha = deviceOrientation.alpha;
+        let beta = deviceOrientation.beta;
+        let gamma = deviceOrientation.gamma;
+        
+        document.getElementById('alphaVal').textContent = alpha.toFixed(1);
+        document.getElementById('betaVal').textContent = beta.toFixed(1);
+        document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+        
+        // Преобразуем углы в радианы
+        const alphaRad = THREE.MathUtils.degToRad(alpha);
+        const betaRad = THREE.MathUtils.degToRad(beta);
+        const gammaRad = THREE.MathUtils.degToRad(gamma);
+        
+        // Используем кватернионы вместо прямого преобразования углов
+        // Это избегает проблемы gimbal lock
+        
+        // Создаём Euler с правильным порядком для device orientation
+        const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
+        
+        // Преобразуем в кватернион для стабильного вращения
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromEuler(euler);
+        
+        // Корректировка для портретной ориентации (поворот на -90° вокруг X)
+        const screenAdjustment = new THREE.Quaternion();
+        screenAdjustment.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+        quaternion.multiply(screenAdjustment);
+        
+        // Применяем кватернион к камере
+        camera.quaternion.copy(quaternion);
+        
+        // Камера смотрит из фиксированной точки
+        camera.position.set(0, 0, cameraDistance);
+        camera.position.applyQuaternion(quaternion.clone().invert());
+        
+        document.getElementById('camPos').textContent = 
+            `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
+        
+        // Камера смотрит на центр
+        camera.lookAt(0, 0, 0);
+    }
+    
+    renderer.render(scene, camera);
+}
 
         function onWindowResize() {
             const newWidth = window.innerWidth;
@@ -629,8 +561,11 @@
             const newScale = getAdaptiveScale();
             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
-                brain.position.x = 0;
-                brain.position.z = 0;
+            }
+            if (hourglass) {
+                hourglass.scale.set(newScale, newScale, newScale);
+                const newPosX = newWidth < 768 ? 0.8 : 1.5;
+                hourglass.position.x = newPosX;
             }
         }
 
@@ -709,14 +644,6 @@
 
         let isPreviewPlaying = false;
 
-        function handleButtonClick(message) {
-            const wasPlaying = !videoBgEl.paused;
-            alert(message);
-            if (wasPlaying && videoBgEl.paused) {
-                videoBgEl.play().catch(err => console.log('Ошибка воспроизведения:', err));
-            }
-        }
-
         function toggleVideoPlayer(event) {
             event.stopPropagation();
             const previewVid = document.getElementById('previewVideo');
@@ -724,11 +651,11 @@
             
             if (isPreviewPlaying) {
                 previewVid.pause();
-                playBtn.classList.remove('playing');
+                playBtn.style.opacity = '1';
                 isPreviewPlaying = false;
             } else {
                 previewVid.play();
-                playBtn.classList.add('playing');
+                playBtn.style.opacity = '0';
                 isPreviewPlaying = true;
             }
         }
@@ -756,6 +683,7 @@
     </script>
 </body>
 </html>
+
 
 
 
