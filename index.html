@@ -593,7 +593,8 @@ let isPreviewPlaying = false;
                             }
                         }
                     });
-                    
+                     // ✅ ЦЕНТРИРОВАНИЕ МОЗГА НА ЭКРАНЕ
+                    brain.position.set(0, 0.5, 0);  // Поднимаем на 0.5 вверх для центра экрана
                     scene.add(brain);
                     cubes.push({model: brain, rotateY: false, type: 'brain'});
                     
@@ -656,7 +657,7 @@ let isPreviewPlaying = false;
             
             cubes.forEach(obj => {
                 if (obj.type === 'brain' && brain) {
-                    brain.position.y = floatAmount;
+                    brain.position.y = 0.5 + floatAmount;  // Добавляем базовое смещение
                 } else if (obj.type === 'hourglass' && hourglass) {
                     hourglass.position.y = floatAmount;
                 }
@@ -706,9 +707,10 @@ let isPreviewPlaying = false;
             renderer.setSize(newWidth, newHeight);
             
             const newScale = getAdaptiveScale();
-            if (brain) {
+             if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
                 brain.position.x = 0;
+                brain.position.y = 0.5;  // Сохраняем вертикальное центрирование
             }
             if (hourglass) {
                 hourglass.scale.set(newScale, newScale, newScale);
@@ -846,6 +848,7 @@ let isPreviewPlaying = false;
     </script>
 </body>
 </html>
+
 
 
 
