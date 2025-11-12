@@ -1,20 +1,9 @@
-let isPreviewPlaying = false;
-
-        // ИСПРАВЛЕНИЕ: Функция для обработки кликов по кнопкам без остановки видео
-        function handleButtonClick(message) {
-            // Сохраняем состояние видео перед alert
-            const wasPlaying = !videoBgEl.paused;
-            
-            alert(message);
-            
-            // Возобновляем видео после закрытия alert
-            if (wasPlaying && videoBgEl.paused) {
-                videoBgEl.play().catch(err<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D AR Visualization v1.0.4</title>
+    <title>3D AR Visualization v2.0 - WOW Edition</title>
     <style>
         * {
             margin: 0;
@@ -23,7 +12,7 @@ let isPreviewPlaying = false;
         }
         
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             background: #000;
             position: fixed;
@@ -49,7 +38,6 @@ let isPreviewPlaying = false;
             height: 100%;
             object-fit: cover;
             z-index: 1;
-            transform: none;
         }
         
         #canvas {
@@ -60,6 +48,37 @@ let isPreviewPlaying = false;
             width: 100vw;
             height: 100vh;
             z-index: 50;
+        }
+
+        #slideIndicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4CAF50;
+            font-size: 14px;
+            z-index: 110;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        #swipeIndicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4CAF50;
+            font-size: 12px;
+            z-index: 100;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
         
         #floatingText {
@@ -80,20 +99,36 @@ let isPreviewPlaying = false;
             background: transparent;
             border-radius: 12px;
             max-width: clamp(200px, 25vw, 300px);
-            animation: floatText 3s ease-in-out infinite;
         }
 
-        @keyframes floatText {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-15px);
-            }
+        #infoPanel {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #4CAF50;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 90vw;
+            width: 300px;
+            border: 1px solid #4CAF50;
+            display: none;
+            z-index: 110;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
-        #floatingText.visible {
+        #infoPanel.visible {
             display: block;
+        }
+
+        #infoPanel h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
         }
         
         #debugInfo {
@@ -112,26 +147,6 @@ let isPreviewPlaying = false;
         
         #debugInfo.visible {
             display: block;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translate(-50%, -50%);
-            }
-            50% {
-                transform: translate(-50%, -60%);
-            }
-        }
-            display: block;
-            font-size: clamp(16px, 4vw, 20px);
-            margin: 8px 0;
-            color: #4CAF50;
-        }
-
-        .text-line.highlight {
-            font-size: clamp(14px, 3.5vw, 18px);
-            color: #a78bfa;
-            margin-top: 15px;
         }
 
         #buttonsContainer {
@@ -154,7 +169,7 @@ let isPreviewPlaying = false;
 
         .action-btn {
             background: rgba(76, 175, 80, 0.15);
-            border: none;
+            border: 1px solid #4CAF50;
             color: white;
             padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 20px);
             border-radius: 8px;
@@ -168,12 +183,17 @@ let isPreviewPlaying = false;
             white-space: nowrap;
             flex-shrink: 0;
             backdrop-filter: blur(10px);
+            user-select: none;
         }
 
         .action-btn:hover {
             background: rgba(76, 175, 80, 0.3);
             transform: scale(1.05);
             box-shadow: 0 6px 12px rgba(76, 175, 80, 0.5);
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
         }
 
         #videoPlayer {
@@ -210,18 +230,6 @@ let isPreviewPlaying = false;
             flex-shrink: 0;
         }
 
-        #videoControls {
-            display: flex;
-            gap: clamp(5px, 1vw, 10px);
-            justify-content: center;
-            width: 100%;
-            flex-shrink: 0;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
         #playButton {
             width: clamp(48px, 10vw, 68px);
             height: clamp(48px, 10vw, 68px);
@@ -233,14 +241,17 @@ let isPreviewPlaying = false;
             cursor: pointer;
             transition: opacity 0.3s, transform 0.2s;
             box-shadow: none;
-            position: relative;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             backdrop-filter: blur(5px);
             opacity: 1;
         }
 
         #playButton:hover {
             background: rgba(0, 0, 0, 0.8);
-            transform: scale(1.1);
+            transform: translate(-50%, -50%) scale(1.1);
         }
 
         #playButton.hidden {
@@ -258,50 +269,6 @@ let isPreviewPlaying = false;
             margin-left: clamp(2px, 0.5vw, 4px);
         }
 
-        #playButton.playing::after {
-            content: '';
-            border: none;
-            width: clamp(14px, 3vw, 18px);
-            height: clamp(18px, 4vw, 22px);
-            background: linear-gradient(to right, white 0%, white 32%, transparent 32%, transparent 68%, white 68%, white 100%);
-            margin-left: 0;
-        }
-
-        #socialLinks {
-            position: fixed;
-            bottom: clamp(35px, 6vh, 80px);
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            gap: clamp(10px, 2vw, 20px);
-            z-index: 100;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        #socialLinks.visible {
-            display: flex;
-        }
-
-        .social-model {
-            width: clamp(60px, 12vw, 90px);
-            height: clamp(60px, 12vw, 90px);
-            cursor: pointer;
-            transition: transform 0.3s;
-            border-radius: 12px;
-            background: transparent;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .social-model:hover {
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
         #permission {
             position: fixed;
             top: 50%;
@@ -358,11 +325,28 @@ let isPreviewPlaying = false;
         .hidden {
             display: none !important;
         }
+
+        #zoomIndicator {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #4CAF50;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 100;
+            display: none;
+        }
+
+        #zoomIndicator.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <video id="videoBg" autoplay playsinline muted style="display: none;"></video>
+        <video id="videoBg" autoplay playsinline muted></video>
         <canvas id="canvas"></canvas>
     </div>
     
@@ -372,17 +356,25 @@ let isPreviewPlaying = false;
         <button class="allow-btn" onclick="requestPermissions()">Разрешить</button>
         <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
     </div>
+
+    <div id="slideIndicator">Слайд 1/3</div>
+    <div id="swipeIndicator">← Свайп вправо/влево →</div>
     
     <div id="floatingText">
         <span class="text-line">Улучшаю память • Концентрацию • Планирование</span>
         <span class="text-line highlight">+30% эффективность уже через 3 недели</span>
+    </div>
+
+    <div id="infoPanel">
+        <h3>Информация</h3>
+        <p id="infoPanelContent">Нажми и удерживай на элементе для более подробной информации</p>
     </div>
     
     <div id="debugInfo">
         <div>Alpha: <span id="alphaVal">0</span>°</div>
         <div>Beta: <span id="betaVal">0</span>°</div>
         <div>Gamma: <span id="gammaVal">0</span>°</div>
-        <div>Camera: <span id="camPos">0,0,0</span></div>
+        <div>Zoom: <span id="zoomVal">1.0</span>x</div>
     </div>
 
     <div id="buttonsContainer">
@@ -399,25 +391,19 @@ let isPreviewPlaying = false;
     
     <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
         <video id="previewVideo" muted></video>
-        <div id="videoControls">
-            <div id="playButton"></div>
-        </div>
+        <div id="playButton"></div>
     </div>
-    
-    <div id="socialLinks">
-        <canvas id="socialModel1" class="social-model" title="Telegram"></canvas>
-        <canvas id="socialModel2" class="social-model" title="ВКонтакте"></canvas>
-    </div>
+
+    <div id="zoomIndicator">Zoom: <span id="zoomValueDisplay">1.0</span>x</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
         let scene, camera, renderer;
-        let cubes = [];
         let brain = null;
-        let hourglass = null;
-        let socialModels = {};
-        let socialScenes = {};
+        let orbitalObjects = [];
+        let pulseWaves = [];
+        let particleSystem = null;
         
         const permissionDialog = document.getElementById('permission');
         const videoBgEl = document.getElementById('videoBg');
@@ -425,8 +411,30 @@ let isPreviewPlaying = false;
         
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
-        const cameraDistance = 3;
+        let cameraDistance = 3;
         let animationTime = 0;
+        let currentSlide = 0;
+        const maxSlides = 3;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartDistance = 0;
+        let initialPinchZoom = 1;
+        let longPressTimer = null;
+
+        const slideContent = [
+            {
+                title: "Мозг - ваш главный актив",
+                text: "Развивайте когнитивные способности с помощью проверенных методов. Улучшите память, концентрацию и планирование за 3 недели."
+            },
+            {
+                title: "Методология обучения",
+                text: "Используем нейропластичность мозга через специальные упражнения, медитации и когнитивные тренировки. Результаты видны с первой недели."
+            },
+            {
+                title: "Ваш путь к успеху",
+                text: "Персональная программа адаптируется под вас. Консультация с экспертом, ежедневные задания, отслеживание прогресса."
+            }
+        ];
 
         function checkARSupport() {
             const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -467,7 +475,6 @@ let isPreviewPlaying = false;
                             document.getElementById('videoPlayer').classList.add('visible');
                             document.getElementById('floatingText').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
-                            document.getElementById('socialLinks').classList.add('visible');
                             document.getElementById('debugInfo').classList.add('visible');
                             arActive = true;
                         }, 100);
@@ -510,16 +517,14 @@ let isPreviewPlaying = false;
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setClearColor(0x000000, 0);
             
-            // УЛУЧШЕННОЕ ОСВЕЩЕНИЕ для правильного отображения PBR-материалов
+            // Освещение
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
             
-            // Основной направленный свет
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
             directionalLight.position.set(5, 5, 5);
             scene.add(directionalLight);
             
-            // Дополнительные источники света для равномерного освещения
             const backLight = new THREE.DirectionalLight(0xffffff, 0.6);
             backLight.position.set(-5, -3, -5);
             scene.add(backLight);
@@ -528,21 +533,117 @@ let isPreviewPlaying = false;
             sideLight.position.set(0, 5, -5);
             scene.add(sideLight);
             
-            // Точечный свет для дополнительного подсвечивания
-            const pointLight = new THREE.PointLight(0xffffff, 0.8, 100);
+            const pointLight = new THREE.PointLight(0x4CAF50, 0.8, 100);
             pointLight.position.set(0, 3, 3);
             scene.add(pointLight);
             
+            // Создание пульсирующих волн
+            createPulseWaves();
+            
             loadBrainModel();
-            // loadHourglassModel(); // Временно отключено
+            createOrbitalObjects();
+            setupTouchControls();
             
             window.addEventListener('resize', onWindowResize);
             
             animate();
         }
 
+        function createPulseWaves() {
+            for (let i = 0; i < 3; i++) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = [];
+                const radius = 1;
+                const segments = 32;
+                
+                for (let j = 0; j <= segments; j++) {
+                    const angle = (j / segments) * Math.PI * 2;
+                    positions.push(
+                        Math.cos(angle) * radius,
+                        Math.sin(angle) * radius,
+                        0
+                    );
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
+                
+                const material = new THREE.LineBasicMaterial({
+                    color: 0x4CAF50,
+                    linewidth: 2,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const wave = new THREE.Line(geometry, material);
+                scene.add(wave);
+                pulseWaves.push({
+                    mesh: wave,
+                    startTime: i * 0.6,
+                    radius: radius
+                });
+            }
+        }
+
+        function createOrbitalObjects() {
+            const orbitalRadius = 2.5;
+            const objects = [
+                { type: 'book', angle: 0, name: 'Книга' },
+                { type: 'hourglass', angle: Math.PI * 0.66, name: 'Время' },
+                { type: 'lightning', angle: Math.PI * 1.33, name: 'Энергия' }
+            ];
+
+            objects.forEach((obj, idx) => {
+                let mesh;
+                
+                if (obj.type === 'book') {
+                    const geometry = new THREE.BoxGeometry(0.3, 0.4, 0.15);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: 0x4CAF50,
+                        metalness: 0.3,
+                        roughness: 0.4,
+                        emissive: 0x2d5016,
+                        emissiveIntensity: 0.3
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                } else if (obj.type === 'hourglass') {
+                    const geometry = new THREE.SphereGeometry(0.15, 16, 16);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: 0xffd700,
+                        metalness: 0.6,
+                        roughness: 0.2,
+                        emissive: 0xffaa00,
+                        emissiveIntensity: 0.4
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                } else if (obj.type === 'lightning') {
+                    const geometry = new THREE.ConeGeometry(0.1, 0.4, 8);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: 0xff6600,
+                        metalness: 0.4,
+                        roughness: 0.3,
+                        emissive: 0xff9900,
+                        emissiveIntensity: 0.5
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                }
+                
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                scene.add(mesh);
+                
+                orbitalObjects.push({
+                    mesh: mesh,
+                    angle: obj.angle,
+                    radius: orbitalRadius,
+                    type: obj.type,
+                    name: obj.name,
+                    speed: 0.5 + idx * 0.1
+                });
+            });
+        }
+
         function getAdaptiveScale() {
-            // УВЕЛИЧЕНО ЕЩЁ В 1.8 РАЗА: было 0.36/0.6, стало 0.648/1.08
             return window.innerWidth < 768 ? 0.648 : 1.08;
         }
 
@@ -561,25 +662,15 @@ let isPreviewPlaying = false;
                     brain = gltf.scene;
                     const brainScale = getAdaptiveScale();
                     brain.scale.set(brainScale, brainScale, brainScale);
+                    brain.position.set(0, 0.5, 0);
                     
-                    // Мозг: точно по центру экрана
-                    brain.position.set(0, 0, 0);
-                    
-                    // ИСПРАВЛЕНИЕ МАТЕРИАЛОВ для корректного отображения цвета
                     brain.traverse((child) => {
                         if (child.isMesh) {
                             if (child.material) {
-                                // Включаем правильный рендеринг для PBR-материалов
                                 child.material.needsUpdate = true;
+                                child.material.emissive = child.material.color.clone().multiplyScalar(0.2);
+                                child.material.emissiveIntensity = 0.4;
                                 
-                                // Если материал слишком темный, увеличиваем его яркость
-                                if (child.material.color) {
-                                    // Увеличиваем яркость цвета
-                                    child.material.emissive = child.material.color.clone().multiplyScalar(0.3);
-                                    child.material.emissiveIntensity = 0.5;
-                                }
-                                
-                                // Настройки для правильного отображения
                                 if (child.material.metalness !== undefined) {
                                     child.material.metalness = Math.min(child.material.metalness, 0.3);
                                 }
@@ -587,18 +678,14 @@ let isPreviewPlaying = false;
                                     child.material.roughness = Math.max(child.material.roughness, 0.4);
                                 }
                                 
-                                // Включаем приём теней
                                 child.castShadow = true;
                                 child.receiveShadow = true;
                             }
                         }
                     });
-                     // ✅ ЦЕНТРИРОВАНИЕ МОЗГА НА ЭКРАНЕ
-                    brain.position.set(0, 0.5, 0);  // Поднимаем на 0.5 вверх для центра экрана
-                    scene.add(brain);
-                    cubes.push({model: brain, rotateY: false, type: 'brain'});
                     
-                    console.log('✅ Мозг загружен с улучшенными материалами');
+                    scene.add(brain);
+                    console.log('✅ Мозг загружен');
                 }, 
                 undefined,
                 function(error) {
@@ -607,46 +694,91 @@ let isPreviewPlaying = false;
             );
         }
 
-        function loadHourglassModel() {
-            if (!window.THREE.GLTFLoader) {
-                setTimeout(loadHourglassModel, 1000);
-                return;
-            }
+        function setupTouchControls() {
+            const canvas = document.getElementById('canvas');
             
-            const loader = new THREE.GLTFLoader();
-            const hourglassPath = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/hourglass.glb';
-            
-            loader.load(
-                hourglassPath, 
-                function(gltf) {
-                    hourglass = gltf.scene;
-                    const hourglassScale = getAdaptiveScale();
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
                     
-                    // Часы: правее видео (видео находится слева, так что часы смещаем вправо)
-                    const posX = window.innerWidth < 768 ? -1.5 : -2.5;
-                    // Поднимаем выше к уровню видео
-                    const posY = window.innerWidth < 768 ? 1.2 : 1.5;
-                    hourglass.position.set(posX, posY, 0);
-                    
-                    hourglass.scale.set(hourglassScale, hourglassScale, hourglassScale);
-                    
-                    // Применяем те же настройки освещения к часам
-                    hourglass.traverse((child) => {
-                        if (child.isMesh && child.material) {
-                            child.material.needsUpdate = true;
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-                    
-                    scene.add(hourglass);
-                    cubes.push({model: hourglass, rotateY: false, type: 'hourglass'});
-                }, 
-                undefined,
-                function(error) {
-                    console.error('❌ Ошибка загрузки часов:', error);
+                    longPressTimer = setTimeout(() => {
+                        showInfoPanel();
+                    }, 500);
+                } else if (e.touches.length === 2) {
+                    clearTimeout(longPressTimer);
+                    touchStartDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    initialPinchZoom = cameraDistance;
                 }
-            );
+            }, false);
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    clearTimeout(longPressTimer);
+                    const currentDistance = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    
+                    const zoomFactor = touchStartDistance / currentDistance;
+                    cameraDistance = Math.max(1.5, Math.min(6, initialPinchZoom * zoomFactor));
+                    document.getElementById('zoomIndicator').classList.add('visible');
+                    document.getElementById('zoomValueDisplay').textContent = (cameraDistance / 3).toFixed(2);
+                }
+            }, false);
+            
+            canvas.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    document.getElementById('zoomIndicator').classList.remove('visible');
+                }
+                
+                if (e.changedTouches.length === 1) {
+                    clearTimeout(longPressTimer);
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diffX = touchStartX - touchEndX;
+                    
+                    if (Math.abs(diffX) > 50) {
+                        if (diffX > 0) {
+                            nextSlide();
+                        } else {
+                            prevSlide();
+                        }
+                    }
+                }
+            }, false);
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % maxSlides;
+            updateSlideIndicator();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + maxSlides) % maxSlides;
+            updateSlideIndicator();
+        }
+
+        function updateSlideIndicator() {
+            document.getElementById('slideIndicator').textContent = `Слайд ${currentSlide + 1}/${maxSlides}`;
+            const content = slideContent[currentSlide];
+            document.getElementById('floatingText').innerHTML = `
+                <span class="text-line">${content.title}</span>
+                <span class="text-line highlight">${content.text}</span>
+            `;
+        }
+
+        function showInfoPanel() {
+            const panel = document.getElementById('infoPanel');
+            const content = slideContent[currentSlide];
+            document.getElementById('infoPanelContent').innerHTML = `<strong>${content.title}</strong><br>${content.text}`;
+            panel.classList.add('visible');
+            
+            setTimeout(() => {
+                panel.classList.remove('visible');
+            }, 5000);
         }
 
         function animate() {
@@ -655,12 +787,38 @@ let isPreviewPlaying = false;
             
             const floatAmount = Math.sin(animationTime * 0.8) * 0.15;
             
-            cubes.forEach(obj => {
-                if (obj.type === 'brain' && brain) {
-                    brain.position.y = 0.5 + floatAmount;  // Добавляем базовое смещение
-                } else if (obj.type === 'hourglass' && hourglass) {
-                    hourglass.position.y = floatAmount;
-                }
+            if (brain) {
+                brain.position.y = 0.5 + floatAmount;
+                brain.rotation.y += 0.001;
+            }
+            
+            // Анимация пульсирующих волн
+            pulseWaves.forEach((wave) => {
+                const elapsed = (animationTime - wave.startTime) % 2;
+                const maxRadius = 3;
+                const scale = (elapsed / 2) * maxRadius;
+                const opacity = Math.max(0, 1 - (elapsed / 2));
+                
+                wave.mesh.scale.set(scale, scale, 1);
+                wave.mesh.material.opacity = opacity * 0.8;
+            });
+            
+            // Анимация орбитальных объектов
+            orbitalObjects.forEach((obj) => {
+                obj.angle += obj.speed * 0.0005;
+                const x = Math.cos(obj.angle) * obj.radius;
+                const z = Math.sin(obj.angle) * obj.radius;
+                const y = 0.5 + Math.sin(animationTime * 0.5 + obj.angle) * 0.3;
+                
+                obj.mesh.position.set(x, y, z);
+                obj.mesh.rotation.x += 0.01;
+                obj.mesh.rotation.y += 0.015;
+                obj.mesh.rotation.z += 0.008;
+                
+                // Эффект приближения к камере
+                const distance = Math.hypot(x, z);
+                const scale = 0.8 + (Math.sin(animationTime * 0.3 + obj.angle) * 0.3);
+                obj.mesh.scale.set(scale, scale, scale);
             });
             
             if (arActive && isDeviceOrientationSupported) {
@@ -671,13 +829,13 @@ let isPreviewPlaying = false;
                 document.getElementById('alphaVal').textContent = alpha.toFixed(1);
                 document.getElementById('betaVal').textContent = beta.toFixed(1);
                 document.getElementById('gammaVal').textContent = gamma.toFixed(1);
+                document.getElementById('zoomVal').textContent = (cameraDistance / 3).toFixed(2);
                 
                 const alphaRad = THREE.MathUtils.degToRad(alpha);
                 const betaRad = THREE.MathUtils.degToRad(beta);
                 const gammaRad = THREE.MathUtils.degToRad(gamma);
                 
                 const euler = new THREE.Euler(betaRad, alphaRad, -gammaRad, 'YXZ');
-                
                 const quaternion = new THREE.Quaternion();
                 quaternion.setFromEuler(euler);
                 
@@ -686,13 +844,8 @@ let isPreviewPlaying = false;
                 quaternion.multiply(screenAdjustment);
                 
                 camera.quaternion.copy(quaternion);
-                
                 camera.position.set(0, 0, cameraDistance);
                 camera.position.applyQuaternion(quaternion.clone().invert());
-                
-                document.getElementById('camPos').textContent = 
-                    `${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}`;
-                
                 camera.lookAt(0, 0, 0);
             }
             
@@ -707,103 +860,16 @@ let isPreviewPlaying = false;
             renderer.setSize(newWidth, newHeight);
             
             const newScale = getAdaptiveScale();
-             if (brain) {
+            if (brain) {
                 brain.scale.set(newScale, newScale, newScale);
                 brain.position.x = 0;
-                brain.position.y = 0.5;  // Сохраняем вертикальное центрирование
-            }
-            if (hourglass) {
-                hourglass.scale.set(newScale, newScale, newScale);
-                const newPosX = newWidth < 768 ? -1.5 : -2.5;
-                const newPosY = newWidth < 768 ? 1.2 : 1.5;
-                hourglass.position.x = newPosX;
-                hourglass.position.y = newPosY;
+                brain.position.y = 0.5;
             }
         }
 
-        function loadSocialModels() {
-            const socialModelsData = [
-                { id: 'socialModel1', name: 'telegram', url: 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/telegram.glb' },
-                { id: 'socialModel2', name: 'vkontakte', url: 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/vkontakte.glb' }
-            ];
-
-            socialModelsData.forEach(modelData => {
-                const canvas = document.getElementById(modelData.id);
-                if (!canvas) return;
-
-                const baseSize = 90;
-                const scale = window.devicePixelRatio;
-                const canvasSize = baseSize * scale;
-                
-                canvas.width = canvasSize;
-                canvas.height = canvasSize;
-
-                const socialScene = new THREE.Scene();
-                socialScene.background = null;
-                socialScene.transparent = true;
-
-                const socialCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-                socialCamera.position.z = 2;
-                
-                const socialRenderer = new THREE.WebGLRenderer({ 
-                    canvas, 
-                    alpha: true, 
-                    antialias: true,
-                    preserveDrawingBuffer: true
-                });
-                socialRenderer.setSize(baseSize, baseSize);
-                socialRenderer.setPixelRatio(scale);
-                socialRenderer.setClearColor(0x000000, 0);
-                
-                const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-                socialScene.add(ambientLight);
-
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                directionalLight.position.set(5, 5, 5);
-                socialScene.add(directionalLight);
-
-                const loader = new THREE.GLTFLoader();
-                loader.load(modelData.url, (gltf) => {
-                    const model = gltf.scene;
-                    
-                    const box = new THREE.Box3().setFromObject(model);
-                    const center = box.getCenter(new THREE.Vector3());
-                    model.position.sub(center);
-                    
-                    const size = box.getSize(new THREE.Vector3());
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    const scl = 1.4 / maxDim;
-                    model.scale.multiplyScalar(scl);
-                    
-                    socialScene.add(model);
-                    socialModels[modelData.name] = model;
-                    socialScenes[modelData.name] = { scene: socialScene, renderer: socialRenderer, camera: socialCamera };
-                    
-                    const canvasEl = document.getElementById(modelData.id);
-                    canvasEl.style.cursor = 'pointer';
-                    canvasEl.addEventListener('click', () => {
-                        if (modelData.name === 'telegram') {
-                            window.open('https://t.me', '_blank');
-                        } else if (modelData.name === 'vkontakte') {
-                            window.open('https://vk.com', '_blank');
-                        }
-                    });
-                }, undefined, (error) => {
-                    console.error('❌ Ошибка загрузки', modelData.name, ':', error);
-                });
-            });
-        }
-
-        let isPreviewPlaying = false;
-
-        // ИСПРАВЛЕНИЕ: Функция для обработки кликов по кнопкам без остановки видео
         function handleButtonClick(message) {
-            // Сохраняем состояние видео перед alert
             const wasPlaying = !videoBgEl.paused;
-            
             alert(message);
-            
-            // Возобновляем видео после закрытия alert
             if (wasPlaying && videoBgEl.paused) {
                 videoBgEl.play().catch(err => console.log('Ошибка воспроизведения:', err));
             }
@@ -814,14 +880,12 @@ let isPreviewPlaying = false;
             const previewVid = document.getElementById('previewVideo');
             const playBtn = document.getElementById('playButton');
             
-            if (isPreviewPlaying) {
-                previewVid.pause();
-                playBtn.classList.remove('playing');
-                isPreviewPlaying = false;
-            } else {
+            if (previewVid.paused) {
                 previewVid.play();
                 playBtn.classList.add('playing');
-                isPreviewPlaying = true;
+            } else {
+                previewVid.pause();
+                playBtn.classList.remove('playing');
             }
         }
 
@@ -829,31 +893,10 @@ let isPreviewPlaying = false;
             checkARSupport();
             const previewVid = document.getElementById('previewVideo');
             previewVid.src = 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/videos/video1.mp4';
-            loadSocialModels();
         });
-
-        setInterval(() => {
-            if (arActive) {
-                Object.keys(socialModels).forEach(name => {
-                    if (socialModels[name]) {
-                        socialModels[name].rotation.y += 0.008;
-                        const socialData = socialScenes[name];
-                        if (socialData) {
-                            socialData.renderer.render(socialData.scene, socialData.camera);
-                        }
-                    }
-                });
-            }
-        }, 30);
     </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
 
