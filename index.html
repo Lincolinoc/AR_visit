@@ -64,6 +64,30 @@
             backdrop-filter: blur(10px);
         }
 
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+            border-radius: 50%;
+            color: #4CAF50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(76, 175, 80, 0.5);
+            transform: scale(1.1);
+        }
+
         #swipeIndicator {
             position: fixed;
             bottom: 30px;
@@ -124,6 +148,7 @@
             overflow-y: auto;
             box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
             animation: slideUp 0.3s ease-out;
+            position: relative;
         }
 
         @keyframes slideUp {
@@ -280,6 +305,25 @@
             pointer-events: none;
         }
 
+        #playButton::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: clamp(14px, 3vw, 18px) solid white;
+            border-top: clamp(9px, 2vw, 11px) solid transparent;
+            border-bottom: clamp(9px, 2vw, 11px) solid transparent;
+            margin-left: clamp(2px, 0.5vw, 4px);
+        }
+
+        #playButton.playing::after {
+            content: '';
+            border: none;
+            width: clamp(14px, 3vw, 18px);
+            height: clamp(18px, 4vw, 22px);
+            background: linear-gradient(to right, white 0%, white 32%, transparent 32%, transparent 68%, white 68%, white 100%);
+            margin-left: 0;
+        }
+
         #permission {
             position: fixed;
             top: 50%;
@@ -385,7 +429,7 @@
         <button class="deny-btn" onclick="denyCameraPermission()">Отклонить</button>
     </div>
 
-    <div id="slideIndicator">Слайд 1/3</div>
+    <div id="slideIndicator">Раздел 1/3: Основы</div>
     <div id="swipeIndicator">← Свайп вправо/влево →</div>
     
     <div id="floatingText">
@@ -394,6 +438,7 @@
     </div>
 
     <div id="infoPanel">
+        <button class="close-btn" onclick="closeInfo()">✕</button>
         <h3 id="infoPanelTitle">Информация</h3>
         <p id="infoPanelContent">Нажми на элементы для подробнее</p>
     </div>
@@ -779,10 +824,11 @@
             document.getElementById('infoPanelTitle').textContent = title;
             document.getElementById('infoPanelContent').innerHTML = details.replace(/\n/g, '<br>');
             panel.classList.add('visible');
-            
-            setTimeout(() => {
-                panel.classList.remove('visible');
-            }, 5000);
+        }
+
+        function closeInfo() {
+            const panel = document.getElementById('infoPanel');
+            panel.classList.remove('visible');
         }
 
         function nextSlide() {
@@ -796,7 +842,8 @@
         }
 
         function updateSlideIndicator() {
-            document.getElementById('slideIndicator').textContent = `Слайд ${currentSlide + 1}/${maxSlides}`;
+            const titles = ['Основы', 'Методология', 'Путь к успеху'];
+            document.getElementById('slideIndicator').textContent = `Раздел ${currentSlide + 1}/3: ${titles[currentSlide]}`;
             const content = slideContent[currentSlide];
             const floatingText = document.getElementById('floatingText');
             floatingText.style.display = 'block';
@@ -913,6 +960,7 @@
     </script>
 </body>
 </html>
+
 
 
 
