@@ -577,7 +577,7 @@
         }
 
         function createOrbitalObjects() {
-            const orbitalRadius = 1.8; // ближе к мозгу
+            const orbitalRadius = 1.5; // изменено на 1.5
             const objects = [
                 { type: 'book', angle: 0, name: 'Методы обучения', details: 'Спайд-техника, ассоциации, интервальное повторение' },
                 { type: 'hourglass', angle: Math.PI * 0.66, name: 'Время результатов', details: '3 недели - первые результаты\n12 недель - фундаментальные изменения' },
@@ -638,38 +638,8 @@
         }
 
         function create3DButtons() {
-            const buttonRadius = 2.2;
-            const buttons = [
-                { label: '📅 Записаться', angle: -Math.PI / 3, color: 0x4CAF50 },
-                { label: '🎯 Тест', angle: 0, color: 0x4CAF50 },
-                { label: '📘 Методы', angle: Math.PI / 3, color: 0x4CAF50 }
-            ];
-
-            buttons.forEach((btn, idx) => {
-                const geometry = new THREE.BoxGeometry(0.4, 0.2, 0.05);
-                const material = new THREE.MeshStandardMaterial({
-                    color: btn.color,
-                    metalness: 0.2,
-                    roughness: 0.5,
-                    emissive: 0x2d5016,
-                    emissiveIntensity: 0.2
-                });
-                const mesh = new THREE.Mesh(geometry, material);
-                
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                mesh.userData = { clickable: true, buttonIndex: idx, label: btn.label };
-                
-                scene.add(mesh);
-                
-                buttonObjects.push({
-                    mesh: mesh,
-                    angle: btn.angle,
-                    radius: buttonRadius,
-                    label: btn.label,
-                    depth: 0
-                });
-            });
+            // УДАЛЯЕМ 3D КНОПКИ - будут только 2D кнопки внизу
+            // Вместо этого добавим информацию при клике на мозг
         }
 
         function getAdaptiveScale() {
@@ -782,21 +752,22 @@
                 
                 raycaster.setFromCamera(mouse, camera);
                 
-                const clickableObjects = orbitalObjects.map(o => o.mesh).concat(buttonObjects.map(b => b.mesh));
+                const clickableObjects = orbitalObjects.map(o => o.mesh);
+                if (brain) clickableObjects.push(brain);
                 const intersects = raycaster.intersectObjects(clickableObjects);
                 
                 if (intersects.length > 0) {
                     const clicked = intersects[0].object;
                     
-                    if (clicked.userData.clickable) {
-                        if (clicked.userData.objData) {
-                            const orbital = orbitalObjects.find(o => o.mesh === clicked);
-                            if (orbital) {
-                                showInfo(orbital.name, orbital.details);
-                            }
-                        } else if (clicked.userData.buttonIndex !== undefined) {
-                            const button = buttonObjects[clicked.userData.buttonIndex];
-                            handleButtonClick(button.label);
+                    // Клик на мозг
+                    if (clicked === brain) {
+                        showInfo('🧠 Ваш мозг', slideContent[currentSlide].details);
+                    }
+                    // Клик на орбитальные объекты
+                    else {
+                        const orbital = orbitalObjects.find(o => o.mesh === clicked);
+                        if (orbital) {
+                            showInfo(orbital.name, orbital.details);
                         }
                     }
                 }
@@ -827,9 +798,11 @@
         function updateSlideIndicator() {
             document.getElementById('slideIndicator').textContent = `Слайд ${currentSlide + 1}/${maxSlides}`;
             const content = slideContent[currentSlide];
-            document.getElementById('floatingText').innerHTML = `
+            const floatingText = document.getElementById('floatingText');
+            floatingText.style.display = 'block';
+            floatingText.innerHTML = `
                 <div style="font-size: 16px; margin-bottom: 10px;">${content.title}</div>
-                <div style="font-size: 13px;">${content.text}</div>
+                <div style="font-size: 13px; line-height: 1.5;">${content.text}</div>
             `;
         }
 
@@ -861,21 +834,7 @@
                 obj.mesh.scale.set(scale, scale, scale);
             });
 
-            // Анимация кнопок в 3D - ПЛЫВУТ ВОКРУГ И ДВИГАЮТСЯ ПО Z
-            buttonObjects.forEach((btn, idx) => {
-                btn.angle += 0.0003;
-                const x = Math.cos(btn.angle) * btn.radius;
-                const z = Math.sin(btn.angle) * btn.radius + Math.sin(animationTime * 0.4 + idx) * 0.5; // ГЛУБИНА!
-                const y = -1 + Math.sin(animationTime * 0.6 + idx * 0.5) * 0.3;
-                
-                btn.mesh.position.set(x, y, z);
-                btn.mesh.rotation.z = btn.angle;
-                
-                // Светящийся эффект при приближении
-                const distanceFromCamera = Math.hypot(x, z - cameraDistance);
-                const opacity = Math.max(0.5, 1 - distanceFromCamera * 0.1);
-                btn.mesh.material.emissiveIntensity = opacity * 0.3;
-            });
+
             
             if (arActive && isDeviceOrientationSupported) {
                 let alpha = deviceOrientation.alpha;
@@ -954,9 +913,6 @@
     </script>
 </body>
 </html>
-
-
-
 
 
 
