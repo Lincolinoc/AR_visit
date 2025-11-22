@@ -108,9 +108,7 @@
         #floatingText {
             position: fixed;
             top: clamp(120px, 12vh, 220px);
-            left: auto;
             right: clamp(10px, 3vw, 30px);
-            transform: none;
             text-align: left;
             color: white;
             font-size: clamp(14px, 3.5vw, 20px);
@@ -125,6 +123,34 @@
             max-width: clamp(200px, 25vw, 300px);
             border: 1px solid #4CAF50;
             backdrop-filter: blur(10px);
+        }
+
+        #textToggleBtn {
+            position: fixed;
+            top: clamp(110px, 11vh, 200px);
+            right: clamp(10px, 3vw, 30px);
+            width: 32px;
+            height: 32px;
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+            border-radius: 50%;
+            color: #4CAF50;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+            z-index: 91;
+        }
+
+        #textToggleBtn:hover {
+            background: rgba(76, 175, 80, 0.5);
+            transform: scale(1.1);
+        }
+
+        #textToggleBtn.visible {
+            display: flex;
         }
 
         #infoPanel {
@@ -148,7 +174,6 @@
             overflow-y: auto;
             box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
             animation: slideUp 0.3s ease-out;
-            position: relative;
         }
 
         @keyframes slideUp {
@@ -201,12 +226,13 @@
             left: 50%;
             transform: translateX(-50%);
             display: none;
-            gap: clamp(8px, 1.5vw, 15px);
+            gap: clamp(6px, 1.5vw, 12px);
             z-index: 100;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
             max-width: 95vw;
             padding: 0 10px;
+            flex-direction: row;
         }
 
         #buttonsContainer.visible {
@@ -217,17 +243,18 @@
             background: rgba(76, 175, 80, 0.15);
             border: 1px solid #4CAF50;
             color: white;
-            padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2.5vw, 20px);
+            padding: clamp(8px, 1.2vw, 12px) clamp(10px, 1.8vw, 16px);
             border-radius: 8px;
             cursor: pointer;
-            font-size: clamp(11px, 2.2vw, 14px);
+            font-size: clamp(10px, 1.8vw, 13px);
             display: flex;
             align-items: center;
-            gap: clamp(5px, 1vw, 8px);
+            gap: clamp(4px, 0.8vw, 6px);
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
             white-space: nowrap;
-            flex-shrink: 0;
+            flex-shrink: 1;
+            min-width: 0;
             backdrop-filter: blur(10px);
             user-select: none;
         }
@@ -244,7 +271,6 @@
 
         #videoPlayer {
             position: fixed;
-            bottom: auto;
             top: clamp(100px, 10vh, 200px);
             left: clamp(10px, 3vw, 30px);
             width: clamp(140px, 18vw, 240px);
@@ -432,6 +458,8 @@
     <div id="slideIndicator">Раздел 1/3: Основы</div>
     <div id="swipeIndicator">← Свайп вправо/влево →</div>
     
+    <button id="textToggleBtn" onclick="toggleFloatingText()" title="Показать/скрыть информацию">👁️</button>
+    
     <div id="floatingText">
         <span class="text-line">Улучшаю память • Концентрацию • Планирование</span>
         <span class="text-line highlight">+30% эффективность уже через 3 недели</span>
@@ -480,6 +508,7 @@
         const permissionDialog = document.getElementById('permission');
         const videoBgEl = document.getElementById('videoBg');
         let arActive = false;
+        let textVisible = false;
         
         let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
         let isDeviceOrientationSupported = false;
@@ -547,10 +576,11 @@
                         
                         setTimeout(() => {
                             document.getElementById('videoPlayer').classList.add('visible');
-                            document.getElementById('floatingText').classList.add('visible');
+                            document.getElementById('textToggleBtn').classList.add('visible');
                             document.getElementById('buttonsContainer').classList.add('visible');
                             document.getElementById('debugInfo').classList.add('visible');
                             arActive = true;
+                            textVisible = false;
                         }, 100);
                         
                         initScene();
@@ -570,6 +600,16 @@
 
         function denyCameraPermission() {
             permissionDialog.classList.add('hidden');
+        }
+
+        function toggleFloatingText() {
+            textVisible = !textVisible;
+            const floatingText = document.getElementById('floatingText');
+            if (textVisible) {
+                floatingText.style.display = 'block';
+            } else {
+                floatingText.style.display = 'none';
+            }
         }
 
         function initScene() {
@@ -622,7 +662,7 @@
         }
 
         function createOrbitalObjects() {
-            const orbitalRadius = 1.5; // изменено на 1.5
+            const orbitalRadius = 1.5;
             const objects = [
                 { type: 'book', angle: 0, name: 'Методы обучения', details: 'Спайд-техника, ассоциации, интервальное повторение' },
                 { type: 'hourglass', angle: Math.PI * 0.66, name: 'Время результатов', details: '3 недели - первые результаты\n12 недель - фундаментальные изменения' },
@@ -684,7 +724,6 @@
 
         function create3DButtons() {
             // УДАЛЯЕМ 3D КНОПКИ - будут только 2D кнопки внизу
-            // Вместо этого добавим информацию при клике на мозг
         }
 
         function getAdaptiveScale() {
@@ -787,7 +826,6 @@
                 }
             }, false);
 
-            // ТАП ДЛЯ ИНФО - обычный клик вместо долгого
             canvas.addEventListener('click', (e) => {
                 const raycaster = new THREE.Raycaster();
                 const mouse = new THREE.Vector2();
@@ -804,11 +842,9 @@
                 if (intersects.length > 0) {
                     const clicked = intersects[0].object;
                     
-                    // Клик на мозг
                     if (clicked === brain) {
                         showInfo('🧠 Ваш мозг', slideContent[currentSlide].details);
                     }
-                    // Клик на орбитальные объекты
                     else {
                         const orbital = orbitalObjects.find(o => o.mesh === clicked);
                         if (orbital) {
@@ -846,11 +882,17 @@
             document.getElementById('slideIndicator').textContent = `Раздел ${currentSlide + 1}/3: ${titles[currentSlide]}`;
             const content = slideContent[currentSlide];
             const floatingText = document.getElementById('floatingText');
-            floatingText.style.display = 'block';
-            floatingText.innerHTML = `
-                <div style="font-size: 16px; margin-bottom: 10px;">${content.title}</div>
-                <div style="font-size: 13px; line-height: 1.5;">${content.text}</div>
-            `;
+            
+            if (currentSlide === 0) {
+                textVisible = false;
+                floatingText.style.display = 'none';
+            } else {
+                floatingText.style.display = textVisible ? 'block' : 'none';
+                floatingText.innerHTML = `
+                    <div style="font-size: 16px; margin-bottom: 10px;">${content.title}</div>
+                    <div style="font-size: 13px; line-height: 1.5;">${content.text}</div>
+                `;
+            }
         }
 
         function animate() {
@@ -864,7 +906,6 @@
                 brain.rotation.y += 0.001;
             }
             
-            // Анимация орбитальных объектов - ВРАЩАЮТСЯ ВОКРУГ МОЗГА
             orbitalObjects.forEach((obj) => {
                 obj.angle += obj.speed * 0.001;
                 const x = Math.cos(obj.angle) * obj.radius;
@@ -876,13 +917,10 @@
                 obj.mesh.rotation.y += 0.015;
                 obj.mesh.rotation.z += 0.008;
                 
-                // Масштабирование - пульсация
                 const scale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
                 obj.mesh.scale.set(scale, scale, scale);
             });
 
-
-            
             if (arActive && isDeviceOrientationSupported) {
                 let alpha = deviceOrientation.alpha;
                 let beta = deviceOrientation.beta;
@@ -960,6 +998,7 @@
     </script>
 </body>
 </html>
+
 
 
 
