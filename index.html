@@ -943,8 +943,9 @@
                 obj.mesh.rotation.y += 0.015;
                 obj.mesh.rotation.z += 0.008;
                 
-                const scale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
-                obj.mesh.scale.set(scale, scale, scale);
+               const animationScale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
+               const finalScale = obj.baseScale * animationScale;
+               obj.mesh.scale.set(finalScale, finalScale, finalScale);
             });
 
             if (arActive && isDeviceOrientationSupported) {
@@ -1024,6 +1025,7 @@
     </script>
 </body>
 </html>
+
 
 
 
