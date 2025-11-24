@@ -1,4 +1,38 @@
-<!DOCTYPE html>
+if (obj.type === 'trophy') {
+                    const geometry = new THREE.ConeGeometry(0.12, 0.35, 8);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: 0xffd700,
+                        metalness: 0.8,
+                        roughness: 0.15,
+                        emissive: 0xffaa00,
+                        emissiveIntensity: 0.5
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                    const baseGeom = new THREE.CylinderGeometry(0.15, 0.15, 0.08, 8);
+                    const baseMesh = new THREE.Mesh(baseGeom, material);
+                    baseMesh.position.y = -0.2;
+                    mesh.add(baseMesh);
+                } else if (obj.type === 'spiral') {
+                    const geometry = new THREE.TorusKnotGeometry(0.15, 0.05, 100, 16);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: 0x00ff88,
+                        metalness: 0.5,
+                        roughness: 0.3,
+                        emissive: 0x00dd66,
+                        emissiveIntensity: 0.4
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                } else if (obj.type === 'star') {
+                    const geometry = new THREE.IcosahedronGeometry(0.15, 3);
+                    const material = new THREE.MeshStandardMaterial({ 
+                        color: 0xff00ff,
+                        metalness: 0.6,
+                        roughness: 0.2,
+                        emissive: 0xff0088,
+                        emissiveIntensity: 0.5
+                    });
+                    mesh = new THREE.Mesh(geometry, material);
+                }<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -491,7 +525,7 @@
     </div>
     
     <div id="videoPlayer" onclick="toggleVideoPlayer(event)">
-        <video id="previewVideo" muted></video>
+        <video id="previewVideo" muted playsinline></video>
         <div id="playButton"></div>
     </div>
 
@@ -664,9 +698,9 @@
         function createOrbitalObjects() {
             const orbitalRadius = 1.5;
             const objects = [
-                { type: 'book', angle: 0, name: 'Методы обучения', details: 'Спайд-техника, ассоциации, интервальное повторение' },
-                { type: 'hourglass', angle: Math.PI * 0.66, name: 'Время результатов', details: '3 недели - первые результаты\n12 недель - фундаментальные изменения' },
-                { type: 'lightning', angle: Math.PI * 1.33, name: 'Энергия успеха', details: '+300% энергии в день благодаря когнитивным тренировкам' }
+                { type: 'trophy', angle: 0, name: '🏆 Достижения', details: 'Ваши когнитивные достижения видны сразу. Трекинг прогресса на каждом этапе.' },
+                { type: 'spiral', angle: Math.PI * 0.66, name: '🧬 Нейропластичность', details: 'Мозг способен перестраиваться. Нейронные связи укрепляются при каждой тренировке.' },
+                { type: 'star', angle: Math.PI * 1.33, name: '⭐ Экспертиза', details: 'Методы разработаны лучшими нейробиологами и когнитивными специалистами мира.' }
             ];
 
             objects.forEach((obj, idx) => {
@@ -970,7 +1004,7 @@
         function handleButtonClick(message) {
             const wasPlaying = !videoBgEl.paused;
             alert(message);
-            if (wasPlaying && videoBgEl.paused) {
+            if (wasPlaying) {
                 videoBgEl.play().catch(err => console.log('Ошибка воспроизведения:', err));
             }
         }
