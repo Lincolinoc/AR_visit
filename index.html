@@ -699,11 +699,12 @@
                     } else {
                         scale = 1 / 3;
                     }
-                    mesh.scale.set(scale, scale, scale);
+                    
                     mesh.userData = { clickable: true, index: idx, objData: obj };
                     
                     mesh.traverse((child) => {
                         if (child.isMesh) {
+                            child.scale.set(scale, scale, scale);
                             if (child.material) {
                                 child.material.needsUpdate = true;
                                 child.material.emissive = child.material.color.clone().multiplyScalar(0.2);
@@ -721,6 +722,8 @@
                             }
                         }
                     });
+                    
+                    mesh.scale.set(scale, scale, scale);
                     
                     scene.add(mesh);
                     
@@ -1017,6 +1020,7 @@
     </script>
 </body>
 </html>
+
 
 
 
