@@ -689,11 +689,11 @@
 
     const modelPath = modelPaths[obj.type];
 
-    // Определяем scale для каждой модели
+    // Определяем scale для каждой модели - более агрессивное масштабирование
     const scales = {
-        'star': 1 / 5,        // звезда в 5 раз меньше
-        'trophy': 1 / 3,      // кубок в 3 раза меньше
-        'dna_spiral': 1 / 3   // днк в 3 раза меньше
+        'star': 0.1,          // звезда сильно уменьшена
+        'trophy': 0.15,       // кубок сильно уменьшен
+        'dna_spiral': 0.15    // днк сильно уменьшена
     };
 
     const modelScale = scales[obj.type];
@@ -737,7 +737,8 @@
                 type: obj.type,
                 name: obj.name,
                 details: obj.details,
-                speed: 0.3 + idx * 0.05
+                speed: 0.3 + idx * 0.05,
+                baseScale: modelScale  // сохраняем базовый scale
             });
         },
         undefined,
@@ -1023,6 +1024,7 @@
     </script>
 </body>
 </html>
+
 
 
 
