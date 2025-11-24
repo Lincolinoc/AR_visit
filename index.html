@@ -678,9 +678,14 @@
                     modelPath,
                     function(gltf) {
                         const mesh = gltf.scene;
-                        mesh.scale.set(0.1, 0.1, 0.1);
+                        const scaleValue = 0.1; // Уменьшить в 5 раз: измени это число
                         
+                        // Масштабируем сцену
+                        mesh.scale.set(scaleValue, scaleValue, scaleValue);
+                        
+                        // Масштабируем все дочерние объекты
                         mesh.traverse((child) => {
+                            child.scale.multiplyScalar(1);
                             if (child.isMesh) {
                                 child.castShadow = true;
                                 child.receiveShadow = true;
@@ -689,6 +694,13 @@
                                 }
                             }
                         });
+                        
+                        // Пересчитываем размер модели через boundingBox
+                        const box = new THREE.Box3().setFromObject(mesh);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 0.1 / maxDim;
+                        mesh.scale.multiplyScalar(scale);
                         
                         mesh.userData = { clickable: true, index: idx, objData: obj };
                         scene.add(mesh);
@@ -987,8 +999,6 @@
     </script>
 </body>
 </html>
-
-
 
 
 
