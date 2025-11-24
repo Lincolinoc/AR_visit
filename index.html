@@ -675,74 +675,77 @@
         }
 
         function loadOrbitalModel(obj, orbitalRadius, idx) {
-            if (!window.THREE.GLTFLoader) {
-                setTimeout(() => loadOrbitalModel(obj, orbitalRadius, idx), 1000);
-                return;
-            }
+    if (!window.THREE.GLTFLoader) {
+        setTimeout(() => loadOrbitalModel(obj, orbitalRadius, idx), 1000);
+        return;
+    }
 
-            const loader = new THREE.GLTFLoader();
-            const modelPaths = {
-                'star': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/star.glb',
-                'trophy': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/trophy.glb',
-                'dna_spiral': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/dna_spiral.glb'
-            };
+    const loader = new THREE.GLTFLoader();
+    const modelPaths = {
+        'star': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/star.glb',
+        'trophy': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/trophy.glb',
+        'dna_spiral': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/dna_spiral.glb'
+    };
 
-            const modelPath = modelPaths[obj.type];
+    const modelPath = modelPaths[obj.type];
 
-            loader.load(
-                modelPath,
-                function(gltf) {
-                    const mesh = gltf.scene;
-                    let scale;
-                    if (obj.type === 'star') {
-                        scale = 1 / 5;
-                    } else {
-                        scale = 1 / 3;
-                    }
-                    
-                    mesh.userData = { clickable: true, index: idx, objData: obj };
-                    
-                    mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            child.scale.set(scale, scale, scale);
-                            if (child.material) {
-                                child.material.needsUpdate = true;
-                                child.material.emissive = child.material.color.clone().multiplyScalar(0.2);
-                                child.material.emissiveIntensity = 0.3;
-                                
-                                if (child.material.metalness !== undefined) {
-                                    child.material.metalness = Math.min(child.material.metalness, 0.3);
-                                }
-                                if (child.material.roughness !== undefined) {
-                                    child.material.roughness = Math.max(child.material.roughness, 0.4);
-                                }
-                                
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                            }
+    // Определяем scale для каждой модели
+    const scales = {
+        'star': 1 / 5,        // звезда в 5 раз меньше
+        'trophy': 1 / 3,      // кубок в 3 раза меньше
+        'dna_spiral': 1 / 3   // днк в 3 раза меньше
+    };
+
+    const modelScale = scales[obj.type];
+
+    loader.load(
+        modelPath,
+        function(gltf) {
+            const mesh = gltf.scene;
+            
+            mesh.userData = { clickable: true, index: idx, objData: obj };
+            
+            mesh.traverse((child) => {
+                if (child.isMesh) {
+                    if (child.material) {
+                        child.material.needsUpdate = true;
+                        child.material.emissive = child.material.color.clone().multiplyScalar(0.2);
+                        child.material.emissiveIntensity = 0.3;
+                        
+                        if (child.material.metalness !== undefined) {
+                            child.material.metalness = Math.min(child.material.metalness, 0.3);
                         }
-                    });
-                    
-                    mesh.scale.set(scale, scale, scale);
-                    
-                    scene.add(mesh);
-                    
-                    orbitalObjects.push({
-                        mesh: mesh,
-                        angle: obj.angle,
-                        radius: orbitalRadius,
-                        type: obj.type,
-                        name: obj.name,
-                        details: obj.details,
-                        speed: 0.3 + idx * 0.05
-                    });
-                },
-                undefined,
-                function(error) {
-                    console.error(`❌ Ошибка загрузки модели ${obj.type}:`, error);
+                        if (child.material.roughness !== undefined) {
+                            child.material.roughness = Math.max(child.material.roughness, 0.4);
+                        }
+                        
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
                 }
-            );
+            });
+            
+            // Применяем масштаб один раз к корневому объекту
+            mesh.scale.set(modelScale, modelScale, modelScale);
+            
+            scene.add(mesh);
+            
+            orbitalObjects.push({
+                mesh: mesh,
+                angle: obj.angle,
+                radius: orbitalRadius,
+                type: obj.type,
+                name: obj.name,
+                details: obj.details,
+                speed: 0.3 + idx * 0.05
+            });
+        },
+        undefined,
+        function(error) {
+            console.error(`❌ Ошибка загрузки модели ${obj.type}:`, error);
         }
+    );
+}
 
         function create3DButtons() {
             // УДАЛЯЕМ 3D КНОПКИ - будут только 2D кнопки внизу
@@ -1020,6 +1023,7 @@
     </script>
 </body>
 </html>
+
 
 
 
