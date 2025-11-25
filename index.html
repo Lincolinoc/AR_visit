@@ -684,19 +684,19 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
 
     const loader = new THREE.GLTFLoader();
     const modelPaths = {
-        'star': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/star.glb',
-        'trophy': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/trophy.glb',
-        'dna_spiral': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/dna_spiral.glb'
-    };
+    'star': 'https://cdn.jsdelivr.net/gh/Lincolinoc/AR_visit@main/models/star.glb',
+    'trophy': 'https://cdn.jsdelivr.net/gh/Lincolinoc/AR_visit@main/models/trophy.glb',
+    'dna_spiral': 'https://cdn.jsdelivr.net/gh/Lincolinoc/AR_visit@main/models/dna_spiral.glb'
+};
 
     const modelPath = modelPaths[obj.type];
 
     // УВЕЛИЧИВАЕМ в 3 РАЗА - умножаем каждое значение на 3
-    const scales = {
-        'star': 0.3,          // было 0.1, теперь 0.1 * 3 = 0.3
-        'trophy': 0.45,       // было 0.15, теперь 0.15 * 3 = 0.45
-        'dna_spiral': 0.45    // было 0.15, теперь 0.15 * 3 = 0.45
-    };
+   const scales = {
+    'star': 0.3,
+    'trophy': 0.45,
+    'dna_spiral': 0.45
+};
 
     const modelScale = scales[obj.type];
 
@@ -1024,6 +1024,7 @@ obj.mesh.scale.set(scale, scale, scale);
     </script>
 </body>
 </html>
+
 
 
 
