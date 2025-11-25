@@ -678,6 +678,8 @@
 
 // НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
 
+// НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
+
 function loadOrbitalModel(obj, orbitalRadius, idx) {
     if (!window.THREE.GLTFLoader) {
         setTimeout(() => loadOrbitalModel(obj, orbitalRadius, idx), 1000);
@@ -693,11 +695,11 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
 
     const modelPath = modelPaths[obj.type];
 
-    // УМЕНЬШАЕМ в 7 РАЗ - делим каждое значение на 7
+    // ПОПРОБУЕМ АГРЕССИВНОЕ УМЕНЬШЕНИЕ
     const scales = {
-        'star': 0.0143,       // было 0.1, теперь 0.1 / 7 ≈ 0.0143
-        'trophy': 0.0214,     // было 0.15, теперь 0.15 / 7 ≈ 0.0214
-        'dna_spiral': 0.0214  // было 0.15, теперь 0.15 / 7 ≈ 0.0214
+        'star': 0.01,         // совсем маленько
+        'trophy': 0.015,      
+        'dna_spiral': 0.015   
     };
 
     const modelScale = scales[obj.type];
@@ -734,15 +736,16 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
             
             scene.add(mesh);
             
-         orbitalObjects.push({
-    mesh: mesh,
-    angle: obj.angle,
-    radius: orbitalRadius,
-    type: obj.type,
-    name: obj.name,
-    details: obj.details,
-    speed: 0.3 + idx * 0.05
-});
+            orbitalObjects.push({
+                mesh: mesh,
+                angle: obj.angle,
+                radius: orbitalRadius,
+                type: obj.type,
+                name: obj.name,
+                details: obj.details,
+                speed: 0.3 + idx * 0.05,
+                baseScale: modelScale  // СОХРАНЯЕМ базовый масштаб
+            });
         },
         undefined,
         function(error) {
@@ -1027,6 +1030,7 @@ obj.mesh.scale.set(scale, scale, scale);
     </script>
 </body>
 </html>
+
 
 
 
