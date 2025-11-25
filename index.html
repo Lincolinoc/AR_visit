@@ -676,6 +676,8 @@
 
         // НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
 
+// НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
+
 function loadOrbitalModel(obj, orbitalRadius, idx) {
     if (!window.THREE.GLTFLoader) {
         setTimeout(() => loadOrbitalModel(obj, orbitalRadius, idx), 1000);
@@ -684,19 +686,19 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
 
     const loader = new THREE.GLTFLoader();
     const modelPaths = {
-    'star': 'https://cdn.jsdelivr.net/gh/Lincolinoc/AR_visit@main/models/star.glb',
-    'trophy': 'https://cdn.jsdelivr.net/gh/Lincolinoc/AR_visit@main/models/trophy.glb',
-    'dna_spiral': 'https://cdn.jsdelivr.net/gh/Lincolinoc/AR_visit@main/models/dna_spiral.glb'
-};
+        'star': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/star.glb',
+        'trophy': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/trophy.glb',
+        'dna_spiral': 'https://raw.githubusercontent.com/Lincolinoc/AR_visit/main/models/dna_spiral.glb'
+    };
 
     const modelPath = modelPaths[obj.type];
 
-    // УВЕЛИЧИВАЕМ в 3 РАЗА - умножаем каждое значение на 3
-   const scales = {
-    'star': 0.03,
-    'trophy': 0.045,
-    'dna_spiral': 0.045
-};
+    // УМЕНЬШАЕМ в 7 РАЗ - делим каждое значение на 7
+    const scales = {
+        'star': 0.0143,       // было 0.1, теперь 0.1 / 7 ≈ 0.0143
+        'trophy': 0.0214,     // было 0.15, теперь 0.15 / 7 ≈ 0.0214
+        'dna_spiral': 0.0214  // было 0.15, теперь 0.15 / 7 ≈ 0.0214
+    };
 
     const modelScale = scales[obj.type];
 
@@ -732,15 +734,15 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
             
             scene.add(mesh);
             
-            orbitalObjects.push({
-                mesh: mesh,
-                angle: obj.angle,
-                radius: orbitalRadius,
-                type: obj.type,
-                name: obj.name,
-                details: obj.details,
-                speed: 0.3 + idx * 0.05
-            });
+         orbitalObjects.push({
+    mesh: mesh,
+    angle: obj.angle,
+    radius: orbitalRadius,
+    type: obj.type,
+    name: obj.name,
+    details: obj.details,
+    speed: 0.3 + idx * 0.05
+});
         },
         undefined,
         function(error) {
@@ -943,7 +945,8 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
                 obj.mesh.rotation.y += 0.015;
                 obj.mesh.rotation.z += 0.008;
                 
-         const scale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
+        const baseScale = scales[obj.type];
+const scale = baseScale * (0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15);
 obj.mesh.scale.set(scale, scale, scale);
             });
 
@@ -1024,6 +1027,7 @@ obj.mesh.scale.set(scale, scale, scale);
     </script>
 </body>
 </html>
+
 
 
 
