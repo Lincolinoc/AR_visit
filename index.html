@@ -521,6 +521,12 @@
         let touchStartDistance = 0;
         let initialPinchZoom = 1;
 
+        const ORBITAL_SCALES = {
+    'star': 0.01,
+    'trophy': 0.015,
+    'dna_spiral': 0.015
+};
+
         const slideContent = [
             {
                 title: "🧠 Ваш мозг - главный актив",
@@ -696,11 +702,7 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
     const modelPath = modelPaths[obj.type];
 
     // ПОПРОБУЕМ АГРЕССИВНОЕ УМЕНЬШЕНИЕ
-    const scales = {
-        'star': 0.01,         // совсем маленько
-        'trophy': 0.015,      
-        'dna_spiral': 0.015   
-    };
+    const modelScale = ORBITAL_SCALES[obj.type];
 
     const modelScale = scales[obj.type];
 
@@ -948,7 +950,7 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
                 obj.mesh.rotation.y += 0.015;
                 obj.mesh.rotation.z += 0.008;
                 
-        const baseScale = scales[obj.type];
+        const baseScale = ORBITAL_SCALES[obj.type];
 const scale = baseScale * (0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15);
 obj.mesh.scale.set(scale, scale, scale);
             });
@@ -1030,6 +1032,7 @@ obj.mesh.scale.set(scale, scale, scale);
     </script>
 </body>
 </html>
+
 
 
 
