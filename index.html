@@ -690,10 +690,10 @@
     const modelPath = modelPaths[obj.type];
 
     // Определяем scale для каждой модели - более агрессивное масштабирование
-    const scales = {
-        'star': 0.1,          // звезда сильно уменьшена
-        'trophy': 0.15,       // кубок сильно уменьшен
-        'dna_spiral': 0.15    // днк сильно уменьшена
+     const scales = {
+        'star': 0.033,
+        'trophy': 0.05,
+        'dna_spiral': 0.05
     };
 
     const modelScale = scales[obj.type];
@@ -941,8 +941,9 @@
                 obj.mesh.rotation.y += 0.015;
                 obj.mesh.rotation.z += 0.008;
                 
-         const scale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
-obj.mesh.scale.set(scale, scale, scale);
+         const baseScale = scales[obj.type]; // сохранить базовый размер
+    const pulseScale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
+    obj.mesh.scale.set(baseScale * pulseScale, baseScale * pulseScale, baseScale * pulseScale);
             });
 
             if (arActive && isDeviceOrientationSupported) {
@@ -1022,6 +1023,7 @@ obj.mesh.scale.set(scale, scale, scale);
     </script>
 </body>
 </html>
+
 
 
 
