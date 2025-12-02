@@ -521,12 +521,6 @@
         let touchStartDistance = 0;
         let initialPinchZoom = 1;
 
-        const ORBITAL_SCALES = {
-    'star': 0.01,
-    'trophy': 0.015,
-    'dna_spiral': 0.015
-};
-
         const slideContent = [
             {
                 title: "🧠 Ваш мозг - главный актив",
@@ -680,13 +674,7 @@
             });
         }
 
-        // НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
-
-// НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
-
-// НАХОДИМ эту функцию в коде и ЗАМЕНЯЕМ:
-
-function loadOrbitalModel(obj, orbitalRadius, idx) {
+        function loadOrbitalModel(obj, orbitalRadius, idx) {
     if (!window.THREE.GLTFLoader) {
         setTimeout(() => loadOrbitalModel(obj, orbitalRadius, idx), 1000);
         return;
@@ -701,8 +689,12 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
 
     const modelPath = modelPaths[obj.type];
 
-    // ПОПРОБУЕМ АГРЕССИВНОЕ УМЕНЬШЕНИЕ
-    const modelScale = ORBITAL_SCALES[obj.type];
+    // Определяем scale для каждой модели - более агрессивное масштабирование
+    const scales = {
+        'star': 0.1,          // звезда сильно уменьшена
+        'trophy': 0.15,       // кубок сильно уменьшен
+        'dna_spiral': 0.15    // днк сильно уменьшена
+    };
 
     const modelScale = scales[obj.type];
 
@@ -733,7 +725,7 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
                 }
             });
             
-            // Применяем масштаб
+            // Применяем масштаб один раз к корневому объекту
             mesh.scale.set(modelScale, modelScale, modelScale);
             
             scene.add(mesh);
@@ -745,8 +737,7 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
                 type: obj.type,
                 name: obj.name,
                 details: obj.details,
-                speed: 0.3 + idx * 0.05,
-                baseScale: modelScale  // СОХРАНЯЕМ базовый масштаб
+                speed: 0.3 + idx * 0.05
             });
         },
         undefined,
@@ -950,8 +941,7 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
                 obj.mesh.rotation.y += 0.015;
                 obj.mesh.rotation.z += 0.008;
                 
-        const baseScale = ORBITAL_SCALES[obj.type];
-const scale = baseScale * (0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15);
+         const scale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
 obj.mesh.scale.set(scale, scale, scale);
             });
 
