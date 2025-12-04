@@ -500,7 +500,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
-        let scene, camera, renderer;
+        function showInfo(title, details) {
+    const panel = document.getElementById('infoPanel');
+    document.getElementById('infoPanelTitle').textContent = title;
+    document.getElementById('infoPanelContent').innerHTML = details.replace(/\n/g, '<br>');
+    panel.classList.add('visible');
+}
+
+// ✅ НОВАЯ ФУНКЦИЯ - показывает полезные факты в виде списка
+function showDetailedInfo(title, facts) {
+    const panel = document.getElementById('infoPanel');
+    document.getElementById('infoPanelTitle').textContent = title;
+    
+    // Создаем HTML со случайным порядком фактов
+    const shuffledFacts = [...facts].sort(() => Math.random() - 0.5).slice(0, 3);
+    const factsHTML = shuffledFacts.map(fact => `<div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(76, 175, 80, 0.3); font-size: 13px; line-height: 1.6;">• ${fact}</div>`).join('');
+    
+    document.getElementById('infoPanelContent').innerHTML = `
+        <div style="color: #7ee8b7; font-size: 12px; margin-bottom: 15px;">Интересные факты:</div>
+        ${factsHTML}
+        <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #4CAF50; opacity: 0.7;">Нажми еще раз для новых фактов</div>
+    `;
+    panel.classList.add('visible');
+}
+
+function closeInfo() {
+    const panel = document.getElementById('infoPanel');
+    panel.classList.remove('visible');
+}let scene, camera, renderer;
 let brain = null;
 let orbitalObjects = [];
 let buttonObjects = [];
@@ -523,9 +550,9 @@ let initialPinchZoom = 1;
 
 // ✅ ГЛОБАЛЬНЫЕ МАСШТАБЫ МОДЕЛЕЙ
 const modelScales = {
-    'star': 0.01,
-    'trophy': 0.1,
-    'dna_spiral': 0.1
+    'star': 0.033,
+    'trophy': 0.05,
+    'dna_spiral': 0.05
 };
 
 const slideContent = [
@@ -545,6 +572,50 @@ const slideContent = [
         details: "За 21 день вы заметите изменения. За 90 дней - фундаментальное развитие когнитивных навыков. Пожизненная поддержка нашей команды."
     }
 ];
+
+// ✅ ИНФОРМАЦИЯ ДЛЯ 3D МОДЕЛЕЙ
+const modelInfo = {
+    'brain': {
+        title: '🧠 Человеческий мозг',
+        facts: [
+            '💡 Мозг весит всего 2% от веса тела, но потребляет 20% энергии организма',
+            '🔄 Каждую секунду в мозгу образуется и отмирает множество нейронных связей',
+            '📚 Средний человеческий мозг может хранить примерно 2,5 петабайта информации (как 3 млн часов фильма)',
+            '⚡ Нейроны передают сигналы со скоростью до 120 метров в секунду',
+            '🧩 Мозг состоит из 86 миллиардов нейронов, каждый из которых имеет до 10 000 связей'
+        ]
+    },
+    'star': {
+        title: '⭐ Методы обучения',
+        facts: [
+            '🎯 Спайд-техника: создание ассоциативных карт для лучшего запоминания',
+            '🔗 Метод ассоциаций: связывание новой информации с уже известной',
+            '📖 Интервальное повторение: повтор информации через возрастающие интервалы времени',
+            '🧠 Активное вспоминание: вспоминание информации без подсказок улучшает память на 50%',
+            '🎪 Метод дворца памяти: древний способ запоминания путем размещения информации в воображаемых местах'
+        ]
+    },
+    'trophy': {
+        title: '🏆 Результаты & Сроки',
+        facts: [
+            '⏱️ Первые заметные результаты появляются уже за 3-5 дней регулярных тренировок',
+            '📈 За 21 день (3 недели): улучшение памяти на 30-45%, концентрация +35-40%',
+            '🚀 За 12 недель (3 месяца): фундаментальные изменения в когнитивных навыках',
+            '⭐ Долгосрочный эффект: регулярные тренировки замедляют возрастное снижение памяти на 50%',
+            '💪 Практика показывает: люди, занимающиеся развитием мозга, более успешны в карьере и жизни'
+        ]
+    },
+    'dna_spiral': {
+        title: '⚡ Энергия & Потенциал',
+        facts: [
+            '🔋 Мозг, как мышца: чем больше тренируешь, тем сильнее становишься',
+            '🧬 Нейропластичность: мозг способен создавать новые нейронные связи в любом возрасте',
+            '💫 Улучшение концентрации увеличивает продуктивность до 300% в течение дня',
+            '🎯 Развитая память дает конкурентное преимущество в любой сфере деятельности',
+            '✨ Когнитивная энергия: правильные упражнения дают ощущение ясности ума и уверенности в себе'
+        ]
+    }
+};
 
 function checkARSupport() {
     const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
@@ -865,12 +936,18 @@ function setupTouchControls() {
             const clicked = intersects[0].object;
             
             if (clicked === brain) {
-                showInfo('🧠 Ваш мозг', slideContent[currentSlide].details);
+                // ✅ ПОКАЗЫВАЕМ ИНФОРМАЦИЮ О МОЗГЕ
+                const info = modelInfo.brain;
+                showDetailedInfo(info.title, info.facts);
             }
             else {
                 const orbital = orbitalObjects.find(o => o.mesh === clicked);
                 if (orbital) {
-                    showInfo(orbital.name, orbital.details);
+                    // ✅ ПОКАЗЫВАЕМ ИНФОРМАЦИЮ О МОДЕЛЯХ
+                    const info = modelInfo[orbital.type];
+                    if (info) {
+                        showDetailedInfo(info.title, info.facts);
+                    }
                 }
             }
         }
@@ -950,9 +1027,6 @@ function animate() {
         let beta = deviceOrientation.beta;
         let gamma = deviceOrientation.gamma;
         
-        document.getElementById('alphaVal').textContent = alpha.toFixed(1);
-        document.getElementById('betaVal').textContent = beta.toFixed(1);
-        document.getElementById('gammaVal').textContent = gamma.toFixed(1);
         document.getElementById('zoomVal').textContent = (cameraDistance / 3).toFixed(2);
         
         const alphaRad = THREE.MathUtils.degToRad(alpha);
@@ -1022,6 +1096,7 @@ window.addEventListener('load', () => {
     </script>
 </body>
 </html>
+
 
 
 
