@@ -500,34 +500,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
-        function showInfo(title, details) {
-    const panel = document.getElementById('infoPanel');
-    document.getElementById('infoPanelTitle').textContent = title;
-    document.getElementById('infoPanelContent').innerHTML = details.replace(/\n/g, '<br>');
-    panel.classList.add('visible');
-}
-
-// ✅ НОВАЯ ФУНКЦИЯ - показывает полезные факты в виде списка
-function showDetailedInfo(title, facts) {
-    const panel = document.getElementById('infoPanel');
-    document.getElementById('infoPanelTitle').textContent = title;
-    
-    // Создаем HTML со случайным порядком фактов
-    const shuffledFacts = [...facts].sort(() => Math.random() - 0.5).slice(0, 3);
-    const factsHTML = shuffledFacts.map(fact => `<div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(76, 175, 80, 0.3); font-size: 13px; line-height: 1.6;">• ${fact}</div>`).join('');
-    
-    document.getElementById('infoPanelContent').innerHTML = `
-        <div style="color: #7ee8b7; font-size: 12px; margin-bottom: 15px;">Интересные факты:</div>
-        ${factsHTML}
-        <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #4CAF50; opacity: 0.7;">Нажми еще раз для новых фактов</div>
-    `;
-    panel.classList.add('visible');
-}
-
-function closeInfo() {
-    const panel = document.getElementById('infoPanel');
-    panel.classList.remove('visible');
-}let scene, camera, renderer;
+        let scene, camera, renderer;
 let brain = null;
 let orbitalObjects = [];
 let buttonObjects = [];
@@ -617,6 +590,36 @@ const modelInfo = {
     }
 };
 
+// ✅ ФУНКЦИИ ДЛЯ ИНФОРМАЦИИ
+function showDetailedInfo(title, facts) {
+    const panel = document.getElementById('infoPanel');
+    if (!panel) {
+        console.error('❌ Панель инфо не найдена');
+        return;
+    }
+    
+    document.getElementById('infoPanelTitle').textContent = title;
+    
+    // Создаем HTML со случайным порядком фактов
+    const shuffledFacts = [...facts].sort(() => Math.random() - 0.5).slice(0, 3);
+    const factsHTML = shuffledFacts.map(fact => `<div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(76, 175, 80, 0.3); font-size: 13px; line-height: 1.6;">• ${fact}</div>`).join('');
+    
+    document.getElementById('infoPanelContent').innerHTML = `
+        <div style="color: #7ee8b7; font-size: 12px; margin-bottom: 15px;">Интересные факты:</div>
+        ${factsHTML}
+        <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #4CAF50; opacity: 0.7;">Нажми еще раз для новых фактов</div>
+    `;
+    panel.classList.add('visible');
+    console.log('✅ Информация показана:', title);
+}
+
+function closeInfo() {
+    const panel = document.getElementById('infoPanel');
+    if (panel) {
+        panel.classList.remove('visible');
+    }
+}
+
 function checkARSupport() {
     const hasWebAR = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
     if (hasWebAR) {
@@ -656,7 +659,6 @@ async function requestPermissions() {
                     document.getElementById('videoPlayer').classList.add('visible');
                     document.getElementById('textToggleBtn').classList.add('visible');
                     document.getElementById('buttonsContainer').classList.add('visible');
-                    document.getElementById('debugInfo').classList.add('visible');
                     arActive = true;
                     textVisible = false;
                 }, 100);
@@ -765,14 +767,14 @@ function loadOrbitalModel(obj, orbitalRadius, idx) {
     };
 
     const modelPath = modelPaths[obj.type];
-    const modelScale = modelScales[obj.type]; // ✅ ИСПОЛЬЗУЕМ ГЛОБАЛЬНЫЙ МАСШТАБ
+    const modelScale = modelScales[obj.type];
 
     loader.load(
         modelPath,
         function(gltf) {
             const mesh = gltf.scene;
             
-            mesh.userData = { clickable: true, index: idx, objData: obj };
+            mesh.userData = { clickable: true, index: idx, objData: obj, type: obj.type };
             
             mesh.traverse((child) => {
                 if (child.isMesh) {
@@ -836,6 +838,7 @@ function loadBrainModel() {
         brainPath, 
         function(gltf) {
             brain = gltf.scene;
+            brain.userData = { clickable: true, type: 'brain' };
             const brainScale = getAdaptiveScale();
             brain.scale.set(brainScale, brainScale, brainScale);
             brain.position.set(0, 0.5, 0);
@@ -928,49 +931,39 @@ function setupTouchControls() {
         
         raycaster.setFromCamera(mouse, camera);
         
-        const clickableObjects = orbitalObjects.map(o => o.mesh);
+        const clickableObjects = [];
+        orbitalObjects.forEach(o => clickableObjects.push(o.mesh));
         if (brain) clickableObjects.push(brain);
+        
         const intersects = raycaster.intersectObjects(clickableObjects, true);
         
         if (intersects.length > 0) {
-            let clicked = intersects[0].object;
+            const clicked = intersects[0].object;
+            console.log('🔍 Кликнут объект:', clicked.userData);
             
-            // ✅ Проходим по иерархии если кликнули на дочерний объект
-            while (clicked.parent && !clicked.userData.clickable && clicked.parent !== scene) {
-                clicked = clicked.parent;
-            }
-            
-            if (clicked === brain) {
-                // ✅ ПОКАЗЫВАЕМ ИНФОРМАЦИЮ О МОЗГЕ
+            // Проверяем сам объект
+            if (clicked.userData && clicked.userData.type === 'brain') {
+                console.log('✅ Клик на мозг!');
                 const info = modelInfo.brain;
                 showDetailedInfo(info.title, info.facts);
-                console.log('✅ Клик на мозг');
+                return;
             }
-            else {
-                const orbital = orbitalObjects.find(o => o.mesh === clicked || o.mesh.children.includes(clicked));
-                if (orbital) {
-                    // ✅ ПОКАЗЫВАЕМ ИНФОРМАЦИЮ О МОДЕЛЯХ
-                    const info = modelInfo[orbital.type];
+            
+            // Проверяем родителя
+            let parent = clicked.parent;
+            while (parent && parent !== scene) {
+                if (parent.userData && parent.userData.type) {
+                    console.log('✅ Клик на ' + parent.userData.type);
+                    const info = modelInfo[parent.userData.type];
                     if (info) {
                         showDetailedInfo(info.title, info.facts);
-                        console.log('✅ Клик на ' + orbital.type);
                     }
+                    return;
                 }
+                parent = parent.parent;
             }
         }
     }, false);
-}
-
-function showInfo(title, details) {
-    const panel = document.getElementById('infoPanel');
-    document.getElementById('infoPanelTitle').textContent = title;
-    document.getElementById('infoPanelContent').innerHTML = details.replace(/\n/g, '<br>');
-    panel.classList.add('visible');
-}
-
-function closeInfo() {
-    const panel = document.getElementById('infoPanel');
-    panel.classList.remove('visible');
 }
 
 function nextSlide() {
@@ -1023,7 +1016,6 @@ function animate() {
         obj.mesh.rotation.y += 0.015;
         obj.mesh.rotation.z += 0.008;
         
-        // ✅ ИСПРАВЛЕННОЕ МАСШТАБИРОВАНИЕ - умножаем пульс на базовый масштаб
         const baseScale = modelScales[obj.type];
         const pulseScale = 0.9 + Math.sin(animationTime * 0.3 + obj.angle) * 0.15;
         obj.mesh.scale.set(baseScale * pulseScale, baseScale * pulseScale, baseScale * pulseScale);
@@ -1101,6 +1093,7 @@ window.addEventListener('load', () => {
     </script>
 </body>
 </html>
+
 
 
 
